@@ -1,0 +1,71 @@
+% Shared preamble for templates/*.tex and future notes.
+% Load after \documentclass; compile from the repository root.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb,mathrsfs,amsthm}
+\usepackage{graphicx,wrapfig}
+\usepackage{enumerate,centernot}
+\usepackage[numbers]{natbib}
+\usepackage{adjustbox,booktabs,arydshln}
+\usepackage{caption,subcaption}
+\usepackage{xcolor,tikz,pifont}
+\usetikzlibrary{decorations.pathreplacing,angles,quotes,shapes.geometric,
+  arrows.meta,positioning,calc,fit,backgrounds,shadows}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{xr}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+% Match the layout used by causal_basics.tex and NE-EFIpf.tex.
+\renewcommand{\baselinestretch}{1.355}
+\setlength{\oddsidemargin}{-0.15in}
+\setlength{\topmargin}{-0.3in}
+\setlength{\textheight}{9.2in}
+\setlength{\textwidth}{6.9in}
+\setlength{\parindent}{0.25in}
+\setlength{\headsep}{0in}
+
+\input{math_command}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\red}{\textcolor{red}}
+\newcommand{\blue}{\textcolor{blue}}
+\newcommand{\notetodo}[1]{\textcolor{blue}{[TODO: #1]}}
+
+% Preserve the existing independent, section-based theorem counters.
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{formula}{Formula}[section]
+\newtheorem{proposition}{Proposition}[section]
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% Journal abbreviations used by the existing bibliography.
+\def\AJE{American Journal of Epidemiology}
+\def\ANNALS{Annals of Statistics}
+\def\BIOK{Biometrika}
+\def\BMCS{Biometrics}
+\def\STATMED{Statistics in Medicine}
+\def\STATSCI{Statistical Science}
+\def\JSPI{Journal of Statistical Planning \& Inference}
+\def\JRSSB{Journal of the Royal Statistical Society, Series B}
+\def\COMMS{Communications in Statistics, Series A}
+\def\JQT{Journal of Quality Technology}
+\def\TECH{Technometrics}
+\def\JASA{Journal of the American Statistical Association}
+\def\CSDA{Computational Statistics \& Data Analysis}
+\def\JCGS{Journal of Computational and Graphical Statistics}
+\def\JCB{Journal of Computational Biology}
+\def\BIOINF{Bioinformatics}
+\def\JAMA{Journal of the American Medical Association}
+\def\JNUTR{Journal of Nutrition}
+\def\LETTERS{Letters in Probability and Statistics}
+\def\JABES{Journal of Agricultural, Biological and Environmental Statistics}
+\def\SCAN{Scandinavian Journal of Statistics}
+\def\PNAS{Proceedings of the National Academy of Sciences USA}
+\def\JMLR{Journal of Machine Learning Research}
+\def\JSCS{Journal of Statistical Computation and Simulation}
