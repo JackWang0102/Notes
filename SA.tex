@@ -1,0 +1,451 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amsfonts,amssymb,mathrsfs}
+\usepackage{amsthm}
+\usepackage{graphicx,psfrag,epsf,url,wrapfig}
+\usepackage{enumitem,color,centernot}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\usepackage{adjustbox,booktabs,arydshln}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor,tikz}
+\usetikzlibrary{decorations.pathreplacing,angles,quotes}
+% \usepackage{algorithm}
+% \usepackage[noend]{algpseudocode}
+%\usepackage{floatrow}
+
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{graphicx}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\renewcommand{\baselinestretch}{1.355}
+%\newfloatcommand{capbtabbox}{table}[][\FBwidth]
+
+%\usepackage{bbm}
+\setlength{\oddsidemargin}{-0.15in}
+%\setlength{\evensidemargin}{0.0in}
+\setlength{\topmargin}{-0.3in}  % 0.3 -0.1in
+\setlength{\textheight}{9.2in}  % 9.1 9.3in
+\setlength{\textwidth}{6.9in}
+\setlength{\parindent}{0.25in}
+\setlength{\headsep}{0in}
+
+%%%% cross reference 
+\usepackage{xr}
+%\externaldocument{supp13}
+ 
+%\usepackage[nolists,tablesfirst]{endfloat}% To `separate' figures and tables from text if required
+
+\usepackage{tikz}
+\usepackage{pifont}
+
+% --- TikZ Libraries ---
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, shadows}
+
+\input{math_command}
+\newcommand{\red}{\textcolor{red}}
+\newcommand{\blue}{\textcolor{blue}}
+
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{formula}{Formula}[section]
+%\newtheorem{algorithm}{Algorithm}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+ %%%%%%%%%%%% Journal definitions %%%%%%%%%%%%%%%%%%%%%%%%%
+\def\AJE{{ American Journal of Epidemiology}}
+\def\ANNALS{{ Annals of Statistics}}
+\def\BIOK{{ Biometrika}}
+\def\BMCS{{ Biometrics}}
+\def\STATMED{{ Statistics in Medicine}}
+\def\STATSCI{{ Statistical Science}}
+\def\JSPI{{ Journal of Statistical Planning \& Inference}}
+\def\JRSSB{{ Journal of the Royal Statistical Society, Series B}}
+\def\COMMS{{ Communications in Statistics, Theory \& Methods}}
+\def\JQT{{ Journal of Quality Technology}}
+\def\TECH{{ Technometrics}}
+\def\JASA{{ Journal of the American Statistical Association}}
+\def\CSDA{{ Computational Statistics \& Data Analysis}}
+\def\JCGS{{ Journal of Computational and Graphical Statistics}}
+\def\JCB{{ Journal of Computational Biology}}
+\def\BIOINF{{ Bioinformatics}}
+\def\JAMA{{ Journal of the American Medical Association}}
+\def\JNUTR{{ Journal of Nutrition}}
+\def\LETTERS{{ Letters in Probability and Statistics}}
+\def\JABES{{ Journal of Agricultural, Biological and
+                      Environmental Statistics}}
+\def\TECH{{ Technometrics}}
+\def\COMMS{{ Communications in Statistics, Series A}}
+\def\SCAN{{ Scandinavian Journal of Statistics}}
+\def\PNAS{{ Proceedings of the National Academy of Sciences USA}}
+\def\JMLR{{ Journal of Machine Learning Research}}
+\def\JSCS{{Journal of Statistical Computation and  Simulation}}
+
+% Article
+\title{Note on Stoichastic Approximation and related Topics}
+\author{Wen-Hung Wang}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+\section{Stochastic Approximation (SA)}
+Stochastic Approximation (SA) methods are a family of iterative algorithms used for root-finding problems (and optimization), such as the \emph{Robbins–Monro algorithm}. SA enables the optimization of a function given its noisy gradients, facilitating methods such as Stochastic Gradient Descent (SGD) for handling large datasets, or Temporal Difference (TD) learning where only noisy operators are observed. In what follows, we adopt an \textcolor{red}{operator point of view} to discuss the properties of SA.
+
+\subsection{Root-Finding Problems}
+We motivate SA by first examining root-finding problems\footnote{We follow the content from Dr. Zaiwei Chen's IE690 course notes: Chapters 7 \& 8.}. Consider the following problem
+\begin{equation}
+\label{eq:root}
+    \bar{F}(x) = x,
+\end{equation}
+where $\bar{F}: \mathbb R^d \to \mathbb R^d$ is an operator. Equation \eqref{eq:root} also defines a \emph{fixed-point problem}. Assume that $\bar{F}$ is contractive with a discount factor $\beta \in [0, 1)$.
+
+\begin{assumption}
+    \label{ass:contractive}
+    There exists a norm $\|\cdot\|_c$ such that 
+    for any $x_1,x_2 \in \mathbb{R}^d$ and a constant \textcolor{blue}{$\beta \in [0, 1)$}, the following holds
+    \[
+    \|\bar{F}(x_1) - \bar{F}(x_2)\|_c \leq \textcolor{blue}{\beta} \|x_1-x_2\|_c.
+    \]
+    We say that $\bar F$ is a contraction operator with respect to (w.r.t.) $\|\cdot\|_c$.
+\end{assumption}
+
+Under this condition, the \emph{Banach fixed-point theorem} can be applied: there exists a unique fixed point $x^*$, which can be found by following the fixed-point update 
+\[
+x_{k+1} = \bar{F}(x_k).
+\]
+Then, $x_k \to x^*$ geometrically; i.e., $\|x_k-x^*\| \leq \beta^k\|x_0-x^*\|$ for all $k \geq 0$. Several observations can be made so far:
+\begin{enumerate}
+    \item \textbf{Optimization.} Compared to directly discussing the properties of the objective function $f$, the above formulation takes an operator viewpoint. Thus, $\textcolor{blue}{\beta}$ in such cases depends on the properties of $f$\footnote{See Example 7.2 in the lecture notes.}.
+
+    \item  \textbf{Equivalence of Norms.} Although norms in finite-dimensional spaces are equivalent, being contractive in one norm does not guarantee contraction in another.
+
+    \item \textbf{Fixed-Point Theorem.} Recall that \emph{policy iteration}, \emph{value iteration}, etc., follow from this theorem utilizing the \emph{Bellman operator} or the \emph{optimal Bellman operator}.
+\end{enumerate}
+
+\paragraph{The Difficulty.} Because evaluating $\bar{F}$ is often either expensive (e.g., SGD for big data) or infeasible (e.g., TD learning in model-free RL) in many applications, SA updates utilize its \emph{unbiased} noisy counterpart instead. 
+\clearpage
+\subsection{SA Formulation}
+SA addresses the difficulty discussed above. Suppose we can observe an unbiased estimator of $\bar F$ subject to noises $Y_k$, denoted as $F(x_k, Y_k)$. We assume $Y_k \in \mathcal{Y}$ with $|\mathcal{Y}| < \infty$ for simplicity.
+
+\begin{assumption}[Unbiasedness of $F$]
+\label{ass:unbiased}
+ The unbiasedness assumption is typically satisfied in two cases:
+    \begin{enumerate}
+    \item \textbf{i.i.d. Noise.} Suppose that $Y_k \sim \mu$ i.i.d. and that $E_{Y \sim \mu}[F(x,Y)] = \bar F(x)$ for all $x \in \mathbb{R}^d$. \textcolor{red}{$\leftarrow$ e.g., SGD with replacement}
+    \item \textbf{Markovian Noise.} Suppose that $Y_k$ forms an \emph{irreducible} and \emph{aperiodic}\footnote{Aperiodicity is without loss of generality (WLOG). See Problem 8.7. Since the state space $\mathcal{Y}$ is finite, the decomposition theorem states $Y_k$ is positive recurrent (non-null persistent). Additionally, an irreducible Markov chain has a stationary distribution if and only if it is positive recurrent.} Markov chain with a unique stationary distribution $\mu$. Moreover, $E_{Y \sim \mu}[F(x,Y)] = \bar F(x)$ for all $x \in \mathbb{R}^d$.
+\end{enumerate}
+\end{assumption}
+
+\paragraph{SA Formulation.} Under this setting, \eqref{eq:root} becomes
+\begin{equation}
+\label{eq:mean-field}
+    E_{Y \sim \mu}[F(x,Y)] = \bar F(x) = x,
+\end{equation}
+which is a \emph{mean-field equation/integral equation}. Mathematically, SA solves \eqref{eq:mean-field} via 
+\begin{align}
+\label{eq:SA}
+    x_{k+1} &= (1-\alpha_k)x_k + \alpha_kF(x_k,Y_k) \\
+\label{eq:SA2}    
+    &= \textcolor{red}{x_k + \alpha_k(F(x_k,Y_k)-x_k),~\forall k \geq 0},
+\end{align}
+where $\alpha_{k} \in [0,1]$ can be interpreted as either (i) weights for the noisy fixed-point update in the first line, or (ii) stepsizes in the second line. Note that setting $\alpha_k = 1$ does not guarantee almost sure (a.s.) convergence to $x^*$ in some cases (see a counterexample in Chapter 7.3). 
+
+\begin{assumption}[Lipschitz Continuity of $F$ \& Uniform Boundedness at the Origin]
+\label{assumption:lip}
+For all $x_1,x_2,y$ and some constants $A_1, B_1 \geq 0$,
+\begin{align}
+\label{eq:lip}
+    \|F(x_1, y) - F(x_2, y)\|_c &\leq A_1 \|x_1-x_2\|_c \\
+\label{eq;unifbdd}
+    \|F(0, y)\|_c &\leq B_1 
+\end{align}
+    
+\end{assumption}
+
+\paragraph{Intuition for \eqref{eq:SA} and \eqref{eq:SA2}.} In \eqref{eq:SA}, since we are now using a noisy operator $F$ rather than the oracle operator $\bar F$, updating $x_k$ based solely on $F$ (i.e., setting $\alpha_k = 1$) is insufficient and, as mentioned earlier, may fail to achieve a.s. convergence. Therefore, \eqref{eq:SA} utilizes a weighted average to balance the current state $x_k$ with the noisy update $F$. This also provides the intuition that $\alpha_k$ should be \emph{diminishing} to properly damp the noise. Equation \eqref{eq:SA2} represents the standard Robbins–Monro form.
+
+\begin{remark}
+    Some work related to mean-field equations:
+    \begin{enumerate}
+        \item Stochastic EM
+        \item IRO \cite{liang2018imputation}
+        \item Adaptive SGMCMC \cite{LiangKS2024EFI}
+        \item StoNet \cite{LiangSLiang2022}
+    \end{enumerate}
+   to name a few.
+\end{remark}
+ 
+\begin{remark}[A Bayesian Version of Fisher's Identity]
+    The following equation is used in many problems and can be solved by adaptive SGMCMC \cite{SongLiang2020eSGLD, LiangKS2024EFI}. Let $D$ be data (e.g., $(\bX,\bY)$ in EFI) and $Z$ be any latent variable. $\nabla_{\theta} \log \pi(\theta|D)$ can be written as
+    \[
+    \nabla_{\theta} \log \pi(\theta|D) = \int \nabla_{\theta}\log \pi(\theta|D,Z) \pi(Z |\theta, D) dZ,
+    \]
+    which can be used to estimate $\nabla_{\theta} \log \pi(\theta|D)$, and by setting $\nabla_{\theta} \log \pi(\theta|D) = 0$, \textcolor{blue}{the root $\theta$ can be found using adaptive SGMCMC.}
+    \begin{proof}
+        \begin{align*}
+            \nabla_{\theta} \log \pi(\theta|D) &=  \nabla_{\theta} \log p(D|\theta) + \nabla_{\theta}\log \pi(\theta) \\
+            &=  \frac{\nabla_{\theta} \int p(D, Z|\theta)dZ}{p(D|\theta)} + \nabla_{\theta}\log \pi(\theta) \\
+            &= \frac{1}{p(D|\theta)}  \int \nabla_{\theta} p(D, Z|\theta)dZ+ \nabla_{\theta}\log \pi(\theta) \\
+             &= \int \frac{p(D, Z|\theta)}{p(D|\theta)}  \nabla_{\theta} \log p(D, Z|\theta)dZ+ \nabla_{\theta}\log \pi(\theta) \\
+             &= \int \pi(Z |D, \theta) \nabla_{\theta}[\log\pi(\theta | D, Z) + \log p(D,Z) - \log\pi(\theta)]dZ + \nabla_{\theta}\log \pi(\theta) \\
+             &= \int \nabla_{\theta}\log \pi(\theta|D,Z) \pi(Z |\theta, D) dZ
+        \end{align*}
+    \end{proof}
+\end{remark}
+
+\subsection{Convergence}
+In this subsection, we analyze the convergence of SA under different conditions and modes ($L_2$ and a.s.).
+
+\subsubsection{Asymptotic.}
+The asymptotic convergence of SA is often studied by analyzing the stability of its associated ordinary differential equation (ODE). If the associated ODE is asymptotically stable, SA converges a.s. under suitable stepsizes. Rearranging the terms in \eqref{eq:SA2}, we get
+\[
+\frac{x_{k+1}-x_k}{\alpha_k} = F(x_k,Y_k) - x_k.
+\]
+Taking $\alpha_k \to 0$ and replacing $F(x_k,Y_k)$ with $\bar F(x)$, we obtain
+\[
+\dot{x} =\bar F(x) - x
+\]
+as its associated ODE. Let $M(x) = \|x-x^*\|_2^2$ be the Lyapunov function. It is shown in the lecture notes that
+\[
+\frac{dM(x)}{dt} = \nabla M(x)^\top \dot{x} \leq -2(1-\beta)M(x) <0,
+\]
+which, by \emph{Gronwall's inequality}, implies $M(x) \leq M(x(0)) e^{-2(1-\beta)t}$. This negative drift term drives $M(x) \to 0$. Later, in the finite-time analysis, the SA recursion can be handled similarly, accounting for a \emph{stochastic error} and a \emph{discretization error}. 
+
+\begin{definition}[Lyapunov Function and Stability]
+Consider the autonomous system $\dot{x} = f(x)$ with an equilibrium point at $x^*$. A continuously differentiable, scalar-valued function $V(x)$ is a \emph{Lyapunov function} if it is positive definite, meaning $V(x^*) = 0$ and $V(x) > 0$ for all $x \neq x^*$. The equilibrium point $x^*$ is said to be \emph{asymptotically stable} if the derivative of $V$ along the trajectories of the system is negative definite:
+\[
+\dot{V}(x) = \nabla V(x)^\top f(x) < 0, \quad \forall x \neq x^*.
+\]
+\end{definition}
+
+\subsubsection{Finite Time.}
+Here, we adopt a Lyapunov function-based approach for the finite-time analysis.
+
+\paragraph{Lyapunov Function-Based Analysis.}
+The finite-time analysis is carried out by constructing a valid Lyapunov function $M$, as the contraction norm $\|\cdot\|_c$ cannot serve as a valid Lyapunov function in some cases (as we will see later). The main strategy for proving $L_2$ convergence involves the following steps:
+\begin{enumerate}
+    \item Find a valid $M$ that can be properly decomposed into: (i) an ODE term providing a negative drift, (ii) a stochastic error term, and (iii) a discretization error term.
+
+    \item Bound each term by leveraging $F(x^*) = x^*$ and Assumptions \ref{ass:contractive}, \ref{ass:unbiased}, and \ref{assumption:lip}.
+
+    \item Establish a negative drift inequality of the form
+    \[
+    E[M(x_{k+1})] \leq \textcolor{red}{\underbrace{\kappa_\beta}_{< 1} E[M(x_{k})]} + \text{Error terms}
+    \]
+    where $\kappa_\beta < 1$ is the main driving force ensuring the finite bound converges.
+
+    \item Solve the recursion.
+\end{enumerate}
+\begin{remark}
+    Note that for a.s. convergence, the supermartingale convergence theorem is typically adopted. 
+\end{remark}
+
+\paragraph{Different Cases.} In the lecture notes, three cases are considered (convergence in $L_2$):
+\begin{enumerate}
+    \item $\ell_2$ norm contraction + i.i.d. noise. $\leftarrow$ In this case, $M$ can be chosen as $\|\cdot\|_2^2$, which is the contraction norm.
+    \item Arbitrary norm contraction + i.i.d. noise: \textcolor{blue}{The challenge in this case is choosing an appropriate Lyapunov function $M$ such that one has the desired error decomposition and may leverage the arbitrary norm contraction.}
+    \item Arbitrary norm contraction + Markovian noise: \textcolor{blue}{The challenge in this case is that the stochastic error term is no longer zero; thus, it needs to be controlled (e.g., via geometric mixing).}
+\end{enumerate}
+We prove the first case ($L_2$ + a.s.) and indicate the key ingredients for the second and third.
+\clearpage
+\subsubsection{Proof of $L_2$ Convergence for $\ell_2$ Norm Contraction + i.i.d. Noise.} 
+In this case, we assume $c=2$ with i.i.d. noise; i.e., the contraction is w.r.t. $\|\cdot\|_2$ and the random variables $Y_k$ are i.i.d. Let $M(x) = \|x-x^*\|_2^2$ be our Lyapunov function. Our goal is to establish a Lyapunov drift inequality of the form 
+\[
+E[M(x_{k+1})] \leq \kappa_{\beta}E[M(x_{k})] + \text{Error}
+\]
+and then solve this recursion. Note that the key to obtaining $\kappa_{\beta} \in [0,1)$ is the \emph{negative drift of $E[M(x)]$ provided by the ODE term}. Finally, before diving into the proof, let us recall the source of randomness in $x_k$:
+\begin{align*}
+    x_0,\underbrace{Y_0}_{\text{random}} &\overset{\text{SA}}{\longrightarrow} x_1 \\
+    x_1,\underbrace{Y_1}_{\text{random}} &\overset{\text{SA}}{\longrightarrow} x_2 \\
+    &\vdots
+\end{align*}
+Therefore, the randomness of $x_k$ is completely determined by the history $Y_0, \dots, Y_{k-1}$, which are currently assumed to be i.i.d.
+
+\begin{proof}
+    The first step is to decompose $M(x_{k+1})$ into three parts. We will color specific steps that need to be modified for other cases.
+    \begin{align*}
+        M(x_{k+1}) &= \|x_{k+1}-x^*\|_2^2 \\
+        &= \|x_{k+1}- x_k + x_k - x^*\|_2^2 \qquad{(\text{To apply SA recursion})} \\
+        &= \|x_{k+1}- x_k\|_2^2 + 2 \underbrace{(x_{k+1}- x_k)^\top(x_k - x^*)}_{\langle x_{k+1}- x_k,~x_k - x^*\rangle} + \|x_k - x^*\|_2^2 \\
+        & \qquad{\textcolor{red}{(\text{Binomial Expansion. Holds for inner product norms only.})}} \\
+        &= M(x_{k}) + 2 \alpha_k \underbrace{(F(x_k,Y_k) - x_k)^\top(x_k - x^*)}_{\langle F(x_k,Y_k) - x_k,~x_k - x^*\rangle} + \alpha_k^2\| F(x_k,Y_k) - x_k\|_2^2 \qquad{(\text{SA recursion})} \\
+        &= M(x_{k}) + 2 \alpha_k (F(x_k,Y_k) \textcolor{cyan}{- \bar F(x_k) + \bar F(x_k)} - x_k)^\top(x_k - x^*) + \alpha_k^2\| F(x_k,Y_k) - x_k\|_2^2 \\
+        &= M(x_{k}) + 2 \alpha_k \underbrace{(F(x_k,Y_k) - \bar F(x_k))^\top(x_k - x^*)}_{I: \text{ Stochastic Error}} \\
+        & \quad + 2 \alpha_k\underbrace{(\bar F(x_k)- x_k)^\top(x_k - x^*)}_{II: \text{ ODE term}} + \alpha_k^2 \underbrace{\| F(x_k,Y_k) - x_k\|_2^2}_{III: \text{ Discretization Error}} 
+    \end{align*}
+    The next step is to systematically bound $I$, $II$, and $III$ using our assumptions (contraction, Lipschitz continuity, uniform boundedness, etc.). The above \emph{Lyapunov function decomposition}\footnote{$I$ is the bias of the estimator of $\bar{F}$. $II$ is similar to $dM(x)/dt$ in the ODE formulation. $III$ can be linked to the associated ODE.} is the most important part of the proof, as all other SA convergence proofs start from this decomposition. Taking the expectation on both sides, we have
+    \begin{align*}
+        E[M(x_{k+1})] &= E[M(x_{k})] + 2 \alpha_k \underbrace{E[(F(x_k,Y_k) - \bar F(x_k))^\top(x_k - x^*)]}_{I: \text{ Stochastic Error}} \\
+        & \quad + 2 \alpha_k\underbrace{E[(\bar F(x_k)- x_k)^\top(x_k - x^*)]}_{II: \text{ ODE term}} + \alpha_k^2 \underbrace{E[\| F(x_k,Y_k) - x_k\|_2^2]}_{III: \text{ Discretization Error}}  
+    \end{align*}
+
+    \paragraph{Bounding $I$.}  Let $\mathcal{F}_{k-1}$ be the $\sigma$-algebra generated by $Y_0, \dots, Y_{k-1}$. By the \emph{law of iterated expectations},
+    \begin{align*}
+        E[(F(x_k,Y_k) - \bar F(x_k))^\top(x_k - x^*)] &= E\big\{\underbrace{E[(F(x_k,Y_k) - \bar F(x_k))^\top(x_k - x^*)|\textcolor{blue}{\mathcal{F}_{k-1}}]}_{\text{$x_k$ is constant conditioned on $\mathcal{F}_{k-1}$}}\big\} \\
+        &=  E\big\{{(\underbrace{E[F(x_k,Y_k)|\textcolor{blue}{\mathcal{F}_{k-1}}]}_{=E[F(x_k,Y_k)] \text{ due to i.i.d.}} - \bar F(x_k))^\top(x_k - x^*)}\big\} \\
+        &= 0,
+    \end{align*}
+    by Assumption \ref{ass:unbiased}.
+
+    \paragraph{Bounding $II$.} Since the term involves $\bar{F}$, which is assumed to be contractive, we leverage this property to upper bound it:
+    \begin{align*}
+        (\bar F(x_k)- x_k)^\top(x_k - x^*) &= (\bar F(x_k)- \bar F(x^*) + \bar F(x^*) - x_k)^\top(x_k - x^*) \\
+        &= (\bar F(x_k)- \bar F(x^*) + x^* - x_k)^\top(x_k - x^*) \\
+        &= (\bar F(x_k)- \bar F(x^*))^\top(x_k - x^*) - \|x_k - x^*\|_2^2 \\
+        &\leq \|\bar F(x_k)- \bar F(x^*)\|_2 \|x_k - x^*\|_2 - M(x_k) \\
+        & \quad{\textcolor{red}{(\text{Cauchy-Schwarz. Holds for inner product norms only.})}} \\
+        &\leq \underbrace{-(1-\beta) M(x_k)}_{< 0},
+    \end{align*}
+    by Assumption \ref{ass:contractive}. This produces a \emph{negative drift term} to drive $E[M(x_k)] \downarrow$ as we will see later. 
+
+    \paragraph{Bounding $III$.} Observe that only $F$ appears in $III$; this suggests we should leverage the properties stated in Assumption \ref{assumption:lip}: 
+    \begin{align*}
+        \| F(x_k,Y_k) - x_k\|_2^2 &= \| F(x_k,Y_k) - F(0,Y_k) + F(0,Y_k) - x_k\|_2^2 \\
+        & \leq (\| F(x_k,Y_k) - F(0,Y_k)\|_2 + \|F(0,Y_k)\|_2 +\|x_k\|_2)^2 \\
+        &\leq ((A_1+1) \|x_k\|_2 + B_1)^2 \\
+        & \leq ((A_1+1) \|x_k-x^*\|_2  + (A_1+1)\|x^*\|_2+ B_1)^2 \\
+        & \leq 2(A_1+1)^2 M(x_k)  + \underbrace{2[(A_1+1)\|x^*\|_2+ B_1]^2}_{\text{Some constant}}. \\
+        & \quad{((a+b)^2 \leq 2(a^2+b^2), \text{ from Cauchy-Schwarz})}
+    \end{align*}
+
+    \paragraph{Putting it all together.} Combining all the results yields the \emph{Lyapunov Drift Inequality}:
+    \begin{align*}
+        E[M(x_{k+1})] &\leq E[M(x_k)] - 2\alpha_k(1-\beta)E[M(x_k)] + 2\alpha_k^2(A_1+1)^2 E[M(x_k)] + 2\alpha_k^2[(A_1+1)\|x^*\|_2+ B_1]^2 \\
+        & = \underbrace{\big(1-2\alpha_k(1-\beta)+2\alpha_k^2(A_1+1)^2\big)}_{\text{Want to choose $\alpha_k$ small s.t. this term $<1$}} E[M(x_k)] + \underbrace{2\alpha_k^2[(A_1+1)\|x^*\|_2+ B_1]^2}_{\text{Error}}, 
+    \end{align*}
+    which can be interpreted as follows: 
+    \begin{quote}
+        \emph{The expected loss $M(x_k)$ is diminishing as $k$ increases, up to an error floor of order $O(\alpha_k^2)$, as long as $\alpha_k$ is "small enough" such that $1-2\alpha_k(1-\beta)+2\alpha_k^2(A_1+1)^2 < 1$. Moreover, we would like to have diminishing step sizes such that the error diminishes as well.}
+    \end{quote}
+    Setting $\alpha_k < \frac{1-\beta}{(A_1+1)^2}$ satisfies this condition. Solving the recursion yields:
+    \begin{align}
+    \begin{aligned}
+    {E}\left[\|x_k-x^*\|_2^2\right] \leq & \prod_{j=0}^{k-1}\left(1-(1-\beta) \alpha_j\right) \|x_0-x^*\|_2^2 \\
+    & +2\left(\left(A_1+1\right)\left\|x^*\right\|_2+B_1\right)^2 \sum_{i=0}^{k-1} \alpha_i^2 \prod_{j=i+1}^{k-1}\left(1-(1-\beta) \alpha_j\right) .
+    \end{aligned}
+    \end{align}
+\end{proof}
+
+\begin{remark} Several comments:
+    \begin{enumerate}
+        \item \textbf{Constant Stepsizes.} When $\alpha_k = \alpha < \frac{1-\beta}{(A_1+1)^2}$, the inequality becomes
+        \begin{align}
+        \begin{aligned}
+        {E}\left[\|x_k-x^*\|_2^2\right] \leq & \underbrace{\left(1-(1-\beta) \alpha\right)^k \|x_0-x^*\|_2^2}_{\text{Bias}} + \underbrace{\frac{2\left(\left(A_1+1\right)\left\|x^*\right\|_2+B_1\right)^2 \alpha}{1-\beta}}_{\text{Variance}},
+        \end{aligned}
+        \end{align}
+        where the bias term goes to zero as $k$ increases; however, the sequence will only converge to a neighborhood of $x^*$ whose radius is proportional to $\alpha$. Additionally, a larger $\alpha$ reduces the bias faster but incurs a larger variance (an example of the \emph{bias-variance trade-off}).
+
+        \item \textbf{Diminishing Stepsizes.} To let the MSE converge to 0, a diminishing stepsize $\alpha_k$ should be used. See Problem 8.3. 
+
+        \item \textbf{Different Cases.} Words in \textcolor{red}{red} leverage the contraction w.r.t. $\ell_2$, which must be adjusted when the contraction norm $\|\cdot\|_c$ is not $c=2$ (i.e., Binomial expansion, Cauchy-Schwarz).
+
+        \item \textbf{Different Cases.} Words in \textcolor{blue}{blue} leverage the i.i.d. assumption of $Y_k$, which must be adjusted when the noise is Markovian. In such cases, we leverage \emph{geometric mixing} to bound $I$, i.e., the stochastic error.
+    \end{enumerate}
+\end{remark}
+\clearpage
+\subsubsection{Proof of almost sure Convergence for $\ell_2$ Norm Contraction + i.i.d. Noise.} For this case, we provide a proof sketch. First, we state a \emph{Supermartingale Convergence Theorem}, which will be used to prove the almost sure convergence of SA.
+
+Recall the classical supermartingale convergence theorem.
+
+\begin{theorem}[Classical Supermartingale Convergence Theorem]
+    Let $\{Y_k\}_{k\geq0}$ be a \textcolor{blue}{nonnegative} supermartingale adapted to a filtration $\{\mathcal{F}_k\}_{k\geq0}$, i.e., for all $k\geq 0$
+    \[
+    E[Y_{k+1} | \mathcal{F}_k] \leq Y_k \quad \text{ a.s.}.
+    \]
+    Then $Y_k \overset{a.s.}{\to} Y \geq 0$ and $\sup_k E[Y_k] < \infty$ (the expectation of the sequence is uniformly bounded).
+    
+\end{theorem}
+
+\begin{theorem}[A Variant of Classical Supermartingale Convergence Theorem] 
+\label{thm:super}
+Consider three nonnegative stochastic processes $\{Y_k\}_{k\geq0},~\{X_k\}_{k\geq0},~\{Z_k\}_{k\geq0}$ adapted to a filtration $\{\mathcal{F}_k\}_{k\geq0}$ such that for all $k \geq 0$
+\[
+E[Y_{k+1} | \mathcal{F}_k] \leq Y_k - X_k + Z_k\quad \text{ a.s.}.
+\]
+and assume $\sum_{k=0}^\infty Z_k < \infty$ a.s. Then  $Y_k \overset{a.s.}{\to} Y \geq 0$ and $\sum_{k=0}^\infty X_k < \infty$ a.s.    
+\end{theorem}
+\begin{proof}
+    To add.....
+\end{proof}
+
+\begin{remark}
+    Theorem \ref{thm:super} can be used to prove almost sure convergence of SA (with a Robbins-Monro condition for $\alpha_k$). $-X_k$ further drives $Y_k$ converges and $Z_k$ is small enough noise in the sense  $\sum_{k=0}^\infty Z_k < \infty$ a.s.
+\end{remark}
+
+In this case, our goal is to use Theorem \ref{thm:super} to show that 
+\[
+M(x_k) = \|x_k -x^*\|_2^2 \to 0 \quad \text{ a.s.}
+\]
+assuming a Robbins-Monro condition for $\alpha_k$
+\[
+\underbrace{\sum_{k=0}^{\infty} \alpha_k = \infty}_{\text{Steps can't be too small}} \& \underbrace{\sum_{k=0}^{\infty} \alpha_k^2 < \infty}_{\text{Steps can't be too large}}
+\]
+\begin{proof}
+    Since we still assume the contraction norm is $\|\cdot\|_2$, the error decomposition for $M(x_{k+1})$ goes through
+     \begin{align*}
+        M(x_{k+1}) 
+        &= M(x_{k}) + 2 \alpha_k \underbrace{(F(x_k,Y_k') - \bar F(x_k))^\top(x_k - x^*)}_{I: \text{ Stochastic Error}} \\
+        & \quad + 2 \alpha_k\underbrace{(\bar F(x_k)- x_k)^\top(x_k - x^*)}_{II: \text{ ODE term}} + \alpha_k^2 \underbrace{\| F(x_k,Y_k') - x_k\|_2^2}_{III: \text{ Discretization Error}} 
+    \end{align*}
+    To leverage Theorem \ref{thm:super}, we need to identify  $\{Y_k\}_{k\geq0},~\{X_k\}_{k\geq0},~\{Z_k\}_{k\geq0}$. let $C = (A_1+1)\|x^*\|_2+ B_1$
+    \begin{align}
+    \label{eq:key_ineq}
+        E[M(x_{k+1})|\mathcal F_k] & \leq M(x_k) - 2(1-\beta)\alpha_k M(x_k) + 2\alpha_k^2(A_1+1)^2 M(x_k) + {2\alpha_k^2 C}\\        
+        & \leq \underbrace{(1 + 2\alpha_k^2(A_1+1)^2) M(x_k)}_{\approx Y_k} - \underbrace{2{(1-\beta)\alpha_k M(x_k)}}_{\approx X_k} + \underbrace{2\alpha_k^2 C}_{\approx Z_k}
+    \end{align}
+    $2\sum_k\alpha_k^2 C < \infty$ a.s. since $\sum_k\alpha_k^2 \infty$. Then one normalize \eqref{eq:key_ineq} to identify $\{Y_k\}_{k\geq0},~\{X_k\}_{k\geq0},~\{Z_k\}_{k\geq0}$. Let $a_k = \prod_{i=0}^{k-1}(1 + 2\alpha_i^2(A_1+1)^2)$ be the normalizing factor. Define, formally
+    \begin{align*}
+        \tilde Y_{k} &= \frac{M(x_k)}{a_k}. \\
+        X_k &= \frac{2(1-\beta)\alpha_k M(x_k)}{a_k} \\
+        Z_k &= \frac{2\alpha_k^2 C}{a_k}
+    \end{align*}
+    With the given conditions $\sum_{k=0}^\infty \alpha_k = \infty$ and $\sum_{k=0}^\infty \alpha_k^2 < \infty$, we verify two conditions for the theorem. First, we claim that there exist $a_U,a_L \in (0, \infty)$ 
+    \[
+    0< a_L \leq a_k = \prod_{i=0}^{k}(1 + 2\alpha_i^2(A_1+1)^2) < \exp\left(\sum_{k=0}^k2\alpha_i^2(A_1+1)^2\right) < a_U
+    \] 
+    due to $\sum_{k=0}^\infty \alpha_i^2 < \infty$. Then we verify
+    \[
+    \sum_{k=0}^{\infty}Z_k = \sum_{k=0}^{\infty}\frac{2\alpha_k^2 C}{a_k} < \sum_{k=0}^{\infty}2\alpha_k^2 C < \infty.
+    \]
+    and that $X_k$ is nonnegative. As a result, \eqref{eq:key_ineq} can be expressed as 
+    $$
+    \mathbb{E}\left[\tilde Y_{k+1} \mid \mathcal{F}_k\right] \leq \tilde Y_k-X_k+Z_k
+    $$
+    with $\sum_{k=0}^{\infty}Z_k < \infty$ a.s. 
+
+    Applying the result obtained in problem 8.1, we have
+    \[
+    \tilde Y_{k} = \frac{M(x_k)}{a_k} \to L \geq 0, \quad{a.s.}
+    \]
+    Since $a_k$ converges to a non-zero real number, by the product law of limit, $M(x_k)$ converges to a nonnegative number $L^*$ a.s. We now claim that $L^*$ must be zero. Suppose the opposite, i.e.,  $L^* > 0$, then 
+    \[
+    \sum_{k=0}^\infty X_k = 2(1-\beta)\sum_{k=0}^\infty\frac{\alpha_k M(x_k)}{a_k} > \frac{2(1-\beta)}{a_U}\sum_{k=0}^\infty{\alpha_k M(x_k)}.
+    \]
+    For sufficiently large $p<q$ such that $M(x_p) = M(x_q) = L^* > 0$, we conclude that, there exists some $\epsilon > 0$ such that 
+    \[
+    \sum_{k=0}^q{\alpha_k M(x_k)} - \sum_{k=0}^p{\alpha_k M(x_k)} = L^* \sum_{k=p+1}^q\alpha_k > \epsilon 
+    \]
+    since $\sum_{k=0}^\infty \alpha_k$ diverges. This implies that the sequence $(\sum_{k=0}^p X_k)_p$ is not Cauchy in a complete space. $\sum_{k=0}^\infty X_k$ diverges, leading to contradiction. Finally, we conclude that $M(x_k) \to 0$ a.s.
+\end{proof}
+\clearpage
+\subsubsection{Other Cases}
+After seeing the proofs for $\ell_2$ contraction norm with i.i.d. noises, we proceed to the ideas for generalizing to arbitrary contraction norms and Markovian noises.
+
+\subsection{Summary}
+
+\section{Related Work}
+In this section, we briefly illustrate relevant work for my research using SA.
+
+\clearpage
+\bibliography{ref}
+\bibliographystyle{abbrv}
+\end{document}

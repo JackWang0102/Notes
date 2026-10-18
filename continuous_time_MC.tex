@@ -1,0 +1,307 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}      % UTF-8 encoding
+\usepackage[T1]{fontenc}         % Font encoding
+\usepackage{geometry}            % Page margins
+  \geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\usepackage{amsmath,amssymb,amsthm}  % Math packages
+\usepackage[inline]{enumitem}
+\usepackage{hyperref}            % Hyperlinks in TOC, references
+  \hypersetup{colorlinks=true,linkcolor=blue}
+
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+% \usepackage[most]{tcolorbox}
+% \newtcolorbox{remark}{
+%   colback=green!3!white,
+%   colframe=green!30!black,
+%   fonttitle=\bfseries,
+%   title=Remark,
+%   arc=1.5mm,
+%   boxrule=0.4pt  % Thinner lines look more delicate
+% }
+
+% Custom commands
+\input{math_command}
+\newcommand{\red}{\textcolor{red}}
+\newcommand{\blue}{\textcolor{blue}}
+
+% Article
+\title{Continuous Time Markov Chains}
+\author{Wen-Hung Wang}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+In this note, we review some properties of the Continuous Time Markov Chains (CTMCs). We first review some definitions and basic properties of CTMCs in \emph{discrete state space}. The content of this part is mostly from a STAT 532 note. 
+
+After that we proceed to continuous state space. The purpose is to better understand the proof of convergence of Langevin diffusion to the Gibbs distribution in $W_2$. We take the content from Appendix A in \cite{raginsky2017non}. Note that, \cite{raginsky2017non} proves a \emph{nonasymptotic bound} for the $W_2$ convergence of SGLD with a constant step size.
+
+\section{Discrete State Space}
+A continuous time stochastic process $X$ consists of a sequence of random variables $X(t), t \geq 0$ evolving in a prescribed manner. Moreover, $X$ is right-continuous. We say $X$ is in a finite state space if $X(t) \in S$ where $S$ is countable. 
+
+\begin{definition}[Markov]
+    $X$ is Markovian if 
+    \[
+    P(X(t_n) = j | X(t_1)=i_1,...,X(t_{n-1})=i_{n-1}) = P(X(t_n) = j | X(t_{n-1})=i_{n-1})
+    \]
+    for all $0 \leq t_1 <...<t_n < \infty$ and $i_1,...,i_{n-1},j \in S$.
+\end{definition}
+
+The difficulty of CTMCs compared to DTMCs is that there is no time unit, meaning no exact analogy of transition matrix $P$: $P$ is the transition for a time unit; however, in CTMCs, $P_t$ depends on the time length $t$, which defines a family $\{P_t, t\geq 0\}$ called a transition semigroup, which will be defined later.
+
+There are two approaches for studying CTMCs, one is to use infinitesimal calculus (e.g, generator) while the other is to study the embedded chain (e.g., chain at inter-arrival times). Examples of Markov CTMCs include Poisson and birth processes. 
+
+\begin{definition}[Transition Probabilities and Time Homogeneity] Let 
+\[
+p_{ij}(t) = P(X(t) = j | X(0) = i), \quad t \geq 0
+\]
+be the transition probabilities of $X$. Then we say $X$ is time-homogeneous if $p_{ij}(s, t) = P(X(t) = j | X(s) = i) = p_{ij}(t-s)$. That is, the transition depends only on the length of time $t-s$ but not the initial time $s$.
+\end{definition}
+
+We assume that $X$ is time-homogeneous thereafter. 
+
+\begin{definition}[Transition Semigroup and Stochastic Semigroup]
+The family $\{P_t, t \geq 0\}$ is called a transition semigroup where $P_t = (p_{i,j}(t))_{i,j \in S}$ for any $t$. $\{P_t, t \geq 0\}$ is a stochastic semigroup if
+\begin{enumerate}
+    \item $P_0 = Id$.
+    \item $p_{ij}(t) \geq 0$ and $\sum_{j \in S} p_{ij}(t)  = 1$ for any $t$.
+\end{enumerate}
+ Furthermore, $P_t$ satisfies the Chapman-Kolmogorov identity (semigroup property)
+\[
+P_{s+t} = P_s P_t
+\]
+for all $s, t \geq 0$.
+\end{definition}
+
+There at any given time $t$, $P_t$ is a stochastic matrix. Note that $P_t$ varies with $t$; therefore it is different from the transition matrix in DTMCs. However, we wish to have some "transition matrix" similar to the unit time transition $P$. The first approach is the infinitesimal calculus method, i.e., studying $P_h$ by considering $h \approx 0$.
+
+\begin{definition}[Standard Semigroup]
+    $P_t$ is called standard if it is continuous at $t=0$, i.e.,
+    \[
+    \lim_{t \to 0}P_t = P_0 = Id.
+    \]
+    Furthermore, by the CK identity,
+    \[
+    \lim_{h \to 0}P_{t+h} = \lim_{h \to 0} P_t P_h = P_t,
+    \]
+    i.e., $P_t$ is continuous at any time $t$.
+\end{definition}
+
+\subsection{The Generator and Its Properties}
+We assume $P_t$ is standard thereafter. Under regularity conditions, consider a first-order Taylor expansion on $P_h$ around $0$, elementwisely,
+\begin{align*}
+    p_{ij}(h) &= p_{ij}(0) + q_{ij}h + {o(h)} \\
+    &= \delta_{ij} + q_{ij}h + {o(h)}
+\end{align*}
+where $\delta_{ij} = 1$ if $i=j$; 0 otherwise. 
+
+The meaning of $q_{ij}$ can be understood in the following way: In a small time $h$, the chain jumps from $i$ to $j$ with probability $q_{ij}h + o(h)$ while stays at $i$ with probability $1+q_{ii}h + o(h)$. Note that $q_{ij}$ relates to the rates in Poisson and birth processes.
+
+\begin{definition}[Generator]
+    A generator $Q$ of $\{P_t, t \geq 0\}$ is defined as $Q = (q_{ij})_{i, j \in S}$.
+\end{definition}
+
+Since $p_{ij}(h)$ is stochastic, we have $q_{ij} \geq 0$ if $i \neq j$ and $q_{ii} \leq 0$, i.e., the diagonal of $Q$ is non-positive. One can view $Q$ as a continuous time analogy of $P$ in discrete time; but crucially, it is not a stochastic matrix itself. 
+
+Nevertheless, $Q$ provides an important way to define a CTMC, which we will discuss later. We summarize several properties of $Q$ as follows.
+
+\begin{theorem}[Properties of $Q$, infinitesimal calculus] Here are some properties of $Q$:
+    \begin{enumerate}
+        \item \textbf{Differential.} $Q$ is the differential of $P_t$ at time $0$:
+        \[
+        \lim_{h \to 0}\frac{P_h-P_0}{h} = \lim_{h \to 0}\frac{P_h-Id}{h} = P_t'|_{t=0} = Q.
+        \]
+        \item \textbf{Orthogonality wrt one vector.} Since $\sum_{j \in S} p_{ij}(h) = 1$ for any $h \geq 0$ and $i \in S$, $\sum_{j \in S} q_{ij}=0$ for all $i \in S$. In matrix form, $Q\boldsymbol{1} = \boldsymbol{0}$.
+        \item \textbf{Forward Equations.} 
+        \[
+        P_t'=P_tQ
+        \]
+        \item \textbf{Backward Equations.} 
+        \[
+        P_t'=QP_t
+        \]
+        \item \textbf{Transition from Generator.}
+        From the forward and backward equations, we can express $P_t$ as a matrix exponential
+        \[
+        P_t = e^{tQ} = \sum_{k=0}^\infty \frac{t^kQ^k}{k!}.
+        \]
+    \end{enumerate}
+    \textcolor{red}{One may use eigen-decomposition to solve for $P_t$ by solving the subsystem.}
+\end{theorem}
+\begin{proof}
+    We prove properties 1, 3, and 5. From the Taylor expansion of $p_{ij}(h)$, we have 
+    \[
+    p_{ij}(h) = \delta_{ij} + q_{ij}h + {o(h)}.
+    \]
+    Rearranging terms, we have 
+    \[
+    \frac{p_{ij}(h)  - \delta_{ij}}{h} = q_{ij} + {o(1)}.
+    \]
+    Taking the limit $h \to 0$ proves 1.
+
+    The forward equation can be written elementwisely as 
+    \[
+    p'_{ij}(t) = \sum_{k \in S}p_{ik}(t) q_{kj},
+    \]
+    which is our goal.
+    By the CK identity, $P_{t+h} = P_t P_h$, i.e., 
+    \begin{align*}
+        p_{ij}(t+h) &= \sum_{k \in S}p_{ik}(t)p_{kj}(h) \\
+        & = \sum_{k \in S}p_{ik}(t)[\delta_{kj} + q_{kj}h + {o(h)}] \\
+        &= \sum_{k \neq j}p_{ik}(t)q_{kj}h  + p_{ij}(h) +  p_{ij}(h)q_{jj}h + {o(h)} \\
+        &= p_{ij}(h) + \sum_{k \in S}p_{ik}(t)q_{kj}h + o(h).
+    \end{align*}
+    Rearranging terms, we obtain
+    \[
+    \frac{p_{ij}(t+h)-p_{ij}(h)}{h} = \sum_{k \in S}p_{ik}(t)q_{kj} + o(1).
+    \]
+    Taking limits $h \to 0$ on both sides, we conclude the forward equations. Backward equations can be proved similarly.
+
+    To prove 5, we leverage the backward equations. Consider
+    \begin{align*}  
+        P_t - P_s &= \int_s^t P_u'du \\
+        &= Q\int_s^t (P_u\textcolor{blue}{-P_{s}+ P_{s}})du \\
+        &= QP_{s}(t-s) + Q\int_s^t P_u-P_{s}du \\
+        &= QP_{s}(t-s) + Q\int_s^t \int_s^{u} P'_{u_2}d{u_2}du \\
+        &= QP_{s}(t-s) + Q^2\int_s^t \int_s^{u} (P_{u_2} -P_{s}+P_{s})d{u_2}du \\
+        &= QP_{s}(t-s) + Q^2P_{s}\underbrace{\int_s^t \int_s^{u} d{u_2}du}_{\frac{(t-s)^2}{2}}+ Q^2\int_s^t \int_s^{u} (P_{u_2} -P_{s})d{u_2}du \\
+        &= QP_{s}(t-s) + Q^2P_{s}\frac{(t-s)^2}{2}+ Q^2\int_s^t \int_s^{u} \int_s^{u_2} P'_{u_3}d{u_3}d{u_2}du \\
+        &= QP_{s}(t-s) + Q^2P_{s}\frac{(t-s)^2}{2}+ Q^3\int_s^t \int_s^{u} \int_s^{u_2} (P_{u_3}-P_s+P_s)d{u_3}d{u_2}du \\
+        &= QP_{s}(t-s) + Q^2P_{s}\frac{(t-s)^2}{2}+ Q^3P_s\underbrace{\int_s^t \int_s^{u} \int_s^{u_2} d{u_3}d{u_2}du}_{\frac{(t-s)^3}{2\times 3}} + \int_s^{u_2} (P_{u_3}-P_s)d{u_3}d{u_2}du \\
+        &\vdots
+    \end{align*}
+    Keeping iterating and setting $s=0$ gives the result. The key is to systematically use the forward equations to transform $P_t'$ to $QP_t$ and write the difference as an integral.
+\end{proof}
+
+Next, we discuss CTMCs in an embedded chain manner. We first define the inter-arrival time, given $X(s)=i$
+\[
+U=\inf_{t\geq 0}\{X(s+t) \neq i\}.
+\]
+Then we find the distribution of $U$ given $X(s)=i$.
+
+\begin{theorem}[Inter-Arrival Time is Exponential]
+    \[
+    P(U>t | X(s)=i) = e^{q_{ii}t},
+    \]
+    i.e., $U  | X(s)=i \sim Exp(-q_{ii})$.
+\end{theorem}
+
+\begin{proof}
+    We begin by showing $U$ is exponentially distributed. Recall that a continuous random variable is memory-less if and only if it is exponential, $P(U>s+t | U>s) = P(U>t)$. 
+    \begin{align*}
+        P(U>s+t | U>s, X(s)=i) &= P(U>s+t | X(s+s)=i, X(s)=i) \\
+        &= P(U>s+t | X(s+s)=i) \\
+        &= P(U>t | X(s)=i)
+    \end{align*}
+    The second equality follows from the Markov property while the last one follows from time homogeneity.
+
+    Then we proceed to figure out the rate. In a small time interval $[t,t+h)$, 
+    $P(X \text{ jumps}) = \lambda h +o(h)$. Here,
+    \[
+    P(X \text{ jumps}) = \underbrace{\sum_{k \neq i}q_{ij}}_{=\lambda}h + o(h).
+    \]
+    By Property 2, 
+    \[
+    \lambda = \sum_{k \neq i}q_{ij} = - q_{ii}.
+    \]
+\end{proof}
+
+In what follows, we define an embedded Markov chain and its transition. 
+
+\begin{definition}[Embedded Markov Chains]
+    An embedded Markov chain is a discrete-time Markov chain constructed from a continuous-time process by observing the system only when it changes states.
+\end{definition}
+
+\begin{theorem}
+For $i \neq j$,
+    \[
+    P(X \text{ jumps to } j |X \text{ jumps}, X(0) = i) = -\frac{q_{ij}}{q_{ii}}.
+    \]
+    Moreover, $\sum_{i \neq j} -\frac{q_{ij}}{q_{ii}} = 1$, i.e., $(P)_{ij} = \frac{q_{ij}}{q_{ii}}$ if $i \neq j$; 0 is $i=j$.
+\end{theorem}
+
+\begin{proof}
+    In a small time interval with length $h$, by definition of the generator, one has
+    \begin{align*}
+        P(X \text{ jumps to } j |X \text{ jumps}, X(0) = i) &= \frac{P(X \text{ jumps to } j | X(0) = i)}{P(X \text{ jumps} | X(0) = i)} \\
+        &= \frac{q_{ij}h+o(h)}{\sum_{j \neq i}q_{ij}h+o(h)} \\
+        & \approx  \frac{q_{ij}}{-q_{ii}}. 
+     \end{align*}
+\end{proof}
+
+\begin{remark}
+    The generator $Q$ is the differential of $P_h$ in a small time interval at zero and can be seen as an analogy of the transition matrix in DTMCs but not a stochastic matrix itself. Given $Q$, the transition of a CTMC can be determined by $P_t=e^{tQ}$. Given $P_t$, taking derivative at 0 gives $Q$. Finally, the diagonal elements of $Q$ relate to the rate of inter-arrival time and the transition matrix of an embedded Markov chain.   
+\end{remark}
+
+\subsection{Classification of Chains}
+We define and discuss irreducibility, stationary distribution, and ergodic theorem (limit theorem) of CTMCs with discrete state space.
+
+\begin{definition}[Irreducibility]
+    $X$ is irreducible if $p_{ij}(t) \geq 0$ for some $t \geq 0$. One can draw a graph of $Q$ to determine if $X$ is irreducible (connected between any two nodes?).
+\end{definition}
+
+\begin{definition}[Stationary Distribution]
+    Let $\pi$ be a row vector. $\pi$ is a stationary distribution of $X$ if
+    \begin{enumerate}
+        \item $\pi_j \geq 0$ for all $j$ and $\sum_{j \in S}\pi_j=1$.
+        \item For all $t \geq 0$,
+        \[
+        \pi = \pi P_t,
+        \]
+        i.e., $\pi_j = \sum_{i \in S}\pi_i p_{ij}(t)$ for any $t \geq 0$ and all $j \in S$.
+    \end{enumerate}
+\end{definition}
+
+Compared to DTMCs, CTMCs require the definition to hold true for any $t$. The relation between $Q$ and $\pi$ is summarized below.
+
+\begin{theorem} Let $Q$ be the generator of $X$.
+    \[
+    \pi \text{ is an invariant distribution of } X\Leftrightarrow \pi Q= 0
+    \]
+\end{theorem}
+
+\begin{proof}
+    \begin{align*}
+        \pi = \pi P_t &\Leftrightarrow \pi = \pi e^{tQ} \\
+        &\Leftrightarrow \pi = \pi \sum_{k=0}^\infty \frac{t^kQ^k}{k!} = \pi  + \pi \sum_{k=1}^\infty \frac{t^kQ^k}{k!}\\
+        & \Leftrightarrow \pi Q =0
+    \end{align*}
+\end{proof}
+
+Therefore, given $Q$, one can obtain $\pi$ by solving $\pi Q = 0$. The next theorem states some basic properties of $\pi$.
+
+\begin{theorem}[Ergodic Theorem]
+    Let $X$ be irreducible. 
+    \begin{enumerate}
+        \item If there exists stationary distribution $\pi$, then $\pi$ is unique and 
+        \[
+        \lim_{t \to \infty} p_{ij}(t) = \pi_j
+        \]
+        for all $i,j \in S$. That is, the chain forgets its initial value and converges to $\pi$ as $t \to \infty$.
+
+        \item If there is no $\pi$, then
+        \[
+        \lim_{t \to \infty} p_{ij}(t) = 0
+        \]
+        for all $i,j \in S$.
+    \end{enumerate}
+\end{theorem}
+
+\section{Continuous State Space}
+\clearpage
+\bibliography{ref}
+\bibliographystyle{abbrv}
+\end{document}

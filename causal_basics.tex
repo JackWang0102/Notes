@@ -1,0 +1,356 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amsfonts,amssymb,mathrsfs}
+\usepackage{amsthm}
+\usepackage{graphicx,psfrag,epsf,url,wrapfig}
+\usepackage{enumerate,color,centernot}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\usepackage{adjustbox,booktabs,arydshln}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor,tikz}
+\usetikzlibrary{decorations.pathreplacing,angles,quotes}
+% \usepackage{algorithm}
+% \usepackage[noend]{algpseudocode}
+%\usepackage{floatrow}
+
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{graphicx}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\renewcommand{\baselinestretch}{1.355}
+%\newfloatcommand{capbtabbox}{table}[][\FBwidth]
+
+%\usepackage{bbm}
+\setlength{\oddsidemargin}{-0.15in}
+%\setlength{\evensidemargin}{0.0in}
+\setlength{\topmargin}{-0.3in}  % 0.3 -0.1in
+\setlength{\textheight}{9.2in}  % 9.1 9.3in
+\setlength{\textwidth}{6.9in}
+\setlength{\parindent}{0.25in}
+\setlength{\headsep}{0in}
+
+%%%% cross reference 
+\usepackage{xr}
+%\externaldocument{supp13}
+ 
+%\usepackage[nolists,tablesfirst]{endfloat}% To `separate' figures and tables from text if required
+
+\usepackage{tikz}
+\usepackage{pifont}
+
+% --- TikZ Libraries ---
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, shadows}
+
+\input{math_command}
+\newcommand{\red}{\textcolor{red}}
+\newcommand{\blue}{\textcolor{blue}}
+
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{formula}{Formula}[section]
+%\newtheorem{algorithm}{Algorithm}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+ %%%%%%%%%%%% Journal definitions %%%%%%%%%%%%%%%%%%%%%%%%%
+\def\AJE{{ American Journal of Epidemiology}}
+\def\ANNALS{{ Annals of Statistics}}
+\def\BIOK{{ Biometrika}}
+\def\BMCS{{ Biometrics}}
+\def\STATMED{{ Statistics in Medicine}}
+\def\STATSCI{{ Statistical Science}}
+\def\JSPI{{ Journal of Statistical Planning \& Inference}}
+\def\JRSSB{{ Journal of the Royal Statistical Society, Series B}}
+\def\COMMS{{ Communications in Statistics, Theory \& Methods}}
+\def\JQT{{ Journal of Quality Technology}}
+\def\TECH{{ Technometrics}}
+\def\JASA{{ Journal of the American Statistical Association}}
+\def\CSDA{{ Computational Statistics \& Data Analysis}}
+\def\JCGS{{ Journal of Computational and Graphical Statistics}}
+\def\JCB{{ Journal of Computational Biology}}
+\def\BIOINF{{ Bioinformatics}}
+\def\JAMA{{ Journal of the American Medical Association}}
+\def\JNUTR{{ Journal of Nutrition}}
+\def\LETTERS{{ Letters in Probability and Statistics}}
+\def\JABES{{ Journal of Agricultural, Biological and
+                      Environmental Statistics}}
+\def\TECH{{ Technometrics}}
+\def\COMMS{{ Communications in Statistics, Series A}}
+\def\SCAN{{ Scandinavian Journal of Statistics}}
+\def\PNAS{{ Proceedings of the National Academy of Sciences USA}}
+\def\JMLR{{ Journal of Machine Learning Research}}
+\def\JSCS{{Journal of Statistical Computation and  Simulation}}
+
+% Article
+\title{Note on the Proofs for NE-EFI}
+\author{Wen-Hung Wang}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\bigskip
+
+\section{Probability}
+\subsection{Some Definitions}
+\begin{definition}[Distribution Law]
+    Given a probability space $(\Omega, \mathcal{A}, P)$, a \emph{distribution (law)} $\mu: \mathcal{B} \to [0,1]$ of an r.v. $X: \Omega \to \mathbb R$ is defined as 
+\[
+\mu(B) = P(\underbrace{X^{-1}(B)}_{\in \mathcal A}) = P(\{\omega \in \Omega: X(\omega) \in B\}) = \underbrace{P(X \in B)}_{\text{for convience}},
+\]
+which is a set function. Note that $\mu$ is a \emph{measure} ($\geq 0,~\mu(\varnothing) = 0$, countable additivity). For a absolutely continuous $\mu$, we may write
+\begin{equation}
+    \label{eq:abs_conti}
+    \mu(B) = P(X \in B) = \int_B \textcolor{blue}{f(x)} \textcolor{red}{dx}
+\end{equation}
+where \textcolor{blue}{$f(x)$ is the density/Radon-Nikodym derivative} and \textcolor{red}{$dx$ is the Lebesgue measure} (counting measure if $X$ discrete). We call 
+\[
+\mathcal{L}(X) = \textcolor{blue}{f(x)} \textcolor{red}{dx}
+\]
+the law of $X$, sometimes denoted as $\mathcal{L}(X) =P(dx) = d\mu= f(x)dx$. This is a handy notation to denote a probability measure.
+\end{definition}
+
+\begin{definition}[Conditional Law]
+    $\mathcal{L}(X|A) =  f(x|A) dx$ is a \emph{conditional law} if it satisfies for all $t$,
+    \[
+    P(X \geq t | A) = \int_{t}^\infty \underbrace{\mathcal{L}(X|A)}_{\text{prob. measure}} = \int_{t}^\infty f(x|A) dx
+    \]
+\end{definition}
+
+\begin{definition}[Pushforward]
+    Define measurable spaces $(\Omega_1, \mathcal{A}_1)$ and $(\Omega_2, \mathcal{A}_2)$. Let $\mu: \mathcal{A}_1 \to [0, +\infty]$ and $f: \Omega_1 \to \Omega_2$ be a measurable function. Then the \emph{pushforward measure} $f_{\#}(\mu): \mathcal{A}_2 \to [0, +\infty]$ can be defined as, for $A \in \mathcal{A}_2$
+    \[
+    f_{\#}(\mu)(A) = \mu(f^{-1}(A)). 
+    \]
+    Note that measurability of $f$ implies that $f^{-1}(A) \in \mathcal{A}_1$.    
+\end{definition}
+
+\begin{theorem}[Change of Variable for Pushforward]
+    A measurable function $g$ on $\Omega_2$ is integrable wrt $f_{\#}(\mu)$ iff the following holds
+    \[
+    \int_{\Omega_2} g~d(f_{\#}(\mu)) = \int_{\Omega_1} g \circ f~d\mu
+    \]
+    where $\Omega_1 = f^{-1}(\Omega_2)$.
+    
+\end{theorem}
+
+\begin{remark}[EFI as Pushforward]
+    EFD in (15) in \cite{LiangKS2024EFI} is in essence a pushforward measure with $f=G$ and $\mu = dP^*_n(z|\bY_n,\bX_n)$.
+\end{remark}
+
+% \begin{lemma}[Scheffe's Lemma; \cite{scheffe1947useful}]
+% \label{lemma:Scheffe}
+% If a sequence of densities $\{\pi_n(z)\}_{n=1}^{\infty}$ satisfies $\pi_n(z)\to \pi(z)$ for almost every $z\in\mathbb{R}$, then a sufficient condition for
+% \[
+% \int_B \pi_n(z)\,dz \;\longrightarrow\; \int_B \pi(z)\,dz
+% \]
+% to hold uniformly over all Borel sets $B\subset\mathbb{R}$ is that $\pi$ itself be a (probability) density on $\mathbb{R}$.
+%   %  If for a sequence of density $\{\pi_n(z)\}_{n=1}^{\infty}$, we have $\lim_{n \to \infty}\pi_n(z) = \pi(z)$ for almost every $z \in \mathbb{R}$, then a sufficient condition that $\lim_{n \to \infty}\int_B \pi_n(z)~dz = \int_B \pi(z)~dz$ holds uniformly for all Borel sets $B$ in $\mathbb{R}$ is that $\pi(z)$ be a density.
+% \end{lemma}
+
+% \begin{remark}
+%     Lemma \ref{lemma:Scheffe} essentially says that a.s. convergence of density implies uniform convergence of CDF.
+% \end{remark}
+
+\subsection{$W_1$ Distance and Its Properties.}
+
+\begin{definition}[1-Wasserstein Distance] Given two probability measures $P, Q$, the \emph{1-Wasserstein distance} is defined as
+\[
+W_1(P,Q) = \textcolor{blue}{\inf_{\gamma \in \Gamma(P,Q)}} E_{X,Y \sim \gamma} [d(X,Y)]
+\]
+where $d$ is the metric used in metric space, $\gamma$ is called a \emph{coupling}, and $\Gamma(P,Q)$ is the set of all joint distributions (transport plans) that have $P$ and $Q$ as their marginals. E.g., $P(dx) = \int_y \gamma(dx,dy)$.
+\end{definition}
+
+\begin{remark}
+    {A useful technique to bound $W_1$ is to define $X,Y \sim \gamma^*$ where $\gamma^*$ is the optimal coupling}
+\end{remark}
+
+\paragraph{Properties.} Below are several properties of $W_1$:
+\begin{enumerate}
+    \item $W_1$ is smooth and differentiable, even if $P,Q$ not overlapping.
+    \item Symmetric, $W_1(P,Q) = W_1(Q,P)$.
+    \item \emph{Kantorovich-Rubinbstein Duality (KR duality)}:
+    \[
+    W_1(P,Q) = \textcolor{blue}{\sup_{|\|f\|_L \leq 1}}\left\{E_{X\sim P}[f(X)] - E_{Y\sim Q}[f(Y)] \right\}
+    \]
+    where the \textcolor{blue}{supremum is taken over all $f$ that are 1-Lipschitz continuous.} This implies
+    \[
+    |E_{X\sim P}[f(X)] - E_{Y\sim Q}[f(Y)]| \leq  \|f\|_LW_1(P,Q)
+    \]
+\end{enumerate}
+
+\begin{remark}
+    In practice, sometimes KR duality is more useful as once $f$ is established; the rest is easier than doing by definition.
+\end{remark}
+
+\paragraph{Proving $W_1$ or $W_2$?} In general, $W_1$ is weaker and often only requires bounded first moments. It is more suitable for heavy-tail distributions or general distribution distance. On the other hand, $W_2$ is stronger and considers second moments (geometry of distributions). Besides, $W_2$ penalizes large transport more:
+\[
+W_p(P,Q) = \inf_{\pi \in \Pi(P,Q)} E_{(X,Y) \sim \pi}[\|X-Y\|^p]^{1/p}.
+\]
+Assuming finite second moments, by Cauchy-Schwartz
+\[
+W_1(P, Q) \leq W_2(P, Q).
+\]
+
+\begin{lemma}[Convolution is non-expansive in \(\mathbb W_1\)]
+\label{lem:conv_nonexp_mod}
+For any probability measures \(Q,\widetilde Q\) on \(\mathbb R\),
+\[
+\mathbb W_1(K_h*Q,K_h*\widetilde Q)\le \mathbb W_1(Q,\widetilde Q).
+\]
+\end{lemma}
+
+\begin{proof}
+Let \((X,\widetilde X)\) be an optimal coupling of \(Q\) and \(\widetilde Q\), and let \(U\sim K_h\) be independent of both. Then
+\(X+U\sim K_h*Q\), \(\widetilde X+U\sim K_h*\widetilde Q\), and
+\[
+E|X+U-(\widetilde X+U)|=E|X-\widetilde X|.
+\]
+Hence
+\[
+\mathbb W_1(K_h*Q,K_h*\widetilde Q)
+\le
+E|X+U-(\widetilde X+U)|
+=
+\mathbb W_1(Q,\widetilde Q).
+\qedhere
+\]
+\end{proof}
+
+\begin{lemma}[A truncation inequality for $\mathbb W_1$] \label{lem:W1_trunc_mod}
+Let $X\sim\mu$ and $Y\sim\nu$ be any coupling with $E|X|+E|Y|<\infty$.
+For an event $A$ with $P(A)>0$, write $\mu_A=\mathcal L(X\mid A)$ and $\nu_A=\mathcal L(Y\mid A)$.
+Then
+\[
+{\mathbb{W}_1(\mu,\nu)\ \le\ \mathbb{W}_1(\mu_A,\nu_A)\ +\ E(|X| \mathbb{I}_{A^c})\ +\ E(|Y| \mathbb{I}_{A^c}).}
+\]
+where $\mathbb{I}_A$ denotes the indicator function on event $A$.
+In particular, if $E X^2+E Y^2<\infty$ then
+\[
+{\mathbb{W}_1(\mu,\nu)\ \le\ \mathbb{W}_1(\mu_A,\nu_A)\ +\ \sqrt{E X^2}\sqrt{P(A^c)}\ +\ \sqrt{E Y^2}\sqrt{P(A^c)}.}
+\]
+\end{lemma}
+\begin{proof}
+Let $f$ be 1-Lipschitz with $f(0)=0$, so $|f(x)|\le |x|$.
+Then
+\[
+|E f(X)-E f(Y)|
+\le
+|E(f(X)\mid A)-E(f(Y)\mid A)|P(A)
++ E(|X| \mathbb{I}_{A^c})+E(|Y| \mathbb{I}_{A^c}).
+\]
+Divide by $P(A)$ inside the first term to recognize $E(f(X)\mid A)=E_{\mu_A}f$, etc., apply $P(A) \leq 1$,
+take the supremum over such $f$ (Kantorovich-Rubinstein duality), and use the Cauchy-Schwarz inequality for the second inequality.
+\end{proof}
+
+\begin{remark}
+    {Lemma \ref{lem:W1_trunc_mod} is quite useful in bounding $W_1$ by defining an event $A$ with $A^c$ has small probability (tail argument). Then bound the first term.}
+\end{remark}
+
+\section{Jacobian and Gibbs Density Control in EFI}
+This section provides review for some math tools. Some statements could be a bit imprecise.
+
+\subsection{Jacobian}
+\begin{theorem}[Change of Variable Formula]
+\label{thm:change_var}
+    Let $T$ be an one-to-one $C^1$ mapping of an open set $E \subset \mathbb{R}^k$ into $\mathbb{R}^k$ (same dimension) such that the Jacobian $J_T(\bx) = \det(\nabla_{\bx}T(\bx)) \neq {0}$. If $f$ is a continuous function supported on a compact set lying in $T(E)$, then
+    \[
+    \int_{\mathbb{R}^k}f(\by)d\by = \int_{\mathbb{R}^k} f(T(\bx)) |J_T(\bx)|d\bx
+    \]
+\end{theorem}
+
+\begin{remark}
+    For example, \emph{polar coordinate}.
+\end{remark}
+
+\paragraph{Gram Determinant.}
+In Riemannian geometry, given an embedded $k$-dimensional Riemannian manifold $M \subset \mathbb{R}^n$ and a parametrization $\phi: U \rightarrow M$ for $\left(x_1, \ldots, x_k\right) \in U \subset \mathbb{R}^k$, the \emph{volume form} $\omega$ on $M$ induced by the embedding may be computed using the Gramian of the coordinate tangent vectors:
+$$
+\omega=\textcolor{red}{d\text{Vol}_M(\phi)} = \underbrace{\sqrt{\operatorname{det} G}}_{\approx \text{ Jacobian}} \textcolor{blue}{\underbrace{d x_1 \cdots d x_k}_{\text{ Lebesgue measure}}}, \quad G=\left[\left\langle\frac{\partial \phi}{\partial x_i}, \frac{\partial \phi}{\partial x_j}\right\rangle\right] .
+$$
+where $d\text{Vol}_M(\phi)$ is sometimes called \emph{intrinsic volume measure} and $x_i$'s are \emph{local coordinates}.
+
+\begin{enumerate}
+    \item The above formulation provides a change of variable formula from Lebesgue measure to intrinsic volume measure on a Riemannian manifold.
+
+    \item $\phi$ maps local coordinates $(x_1,...,x_k)$ to a Riemannian manifold $M \subset \mathbb{R}^n$. \textcolor{red}{$\phi$ is $s$ in the NE-EFI paper or $m$ in the EFI paper given by the tubular neighborhood theorem.}
+
+    \item One of the purposes using this formula is to \textcolor{red}{convert region of integral from chart domain to $M$.}
+\end{enumerate}
+
+
+% \begin{remark}[Change of Variable Used in Lemma D.14]
+%     Let's revisit how we use these properties in the NE-EFI paper. We simplify the notations a bit. We note that $\bar P(z) = P(z | d(Z,\mathcal{Z}_n) \leq r)$ is a truncated probability measure on $\mathcal{N}_r(\mathcal{Z}_n)$. 
+%     \[
+%     \bar P(z) = \frac{P(Z, d(Z,\mathcal{Z}_n) \leq r)}{P( d(Z,\mathcal{Z}_n) \leq r)} := \frac{A}{B}
+%     \]
+%     Since we assume that $z \in \mathcal{N}_r(\mathcal{Z}_n)$ admits a parametrization $z = \Phi(s(u),t)$ with $s: \mathbb{R}^p \to \mathbb{R}^n$ maps the local coordinates to $\mathcal{Z}_n$, we obtain 
+%     \[
+%     A = \prod_i \pi(\Phi(s(u), t)_i) \exp\left(-\frac{U(\Phi(s(u), t))}{\epsilon}\right)dz
+%     \]
+%     and $B$ is 
+%     \[
+%     B= \int_{\mathbb{R}^{n}} \prod_i \pi(\Phi(s(u), t)_i) \exp\left(-\frac{U(\Phi(s(u), t))}{\epsilon}\right)dz.
+%     \]
+%     The normalizing constants are canceled out. Now, we need to change the variable $z$ to $(u,t)$ (not $(s(u),t)$). Applying the change of variable formula in Theorem \ref{thm:change_var} to $A$ and $B$ gives
+%     \[
+%      A = \prod_i \pi(\Phi(s(u), t)_i) \exp\left(-\frac{U(\Phi(s(u), t))}{\epsilon}\right) J(u,t) dudt
+%     \]
+%     and 
+%     \[
+%      B = \textcolor{blue}{\int_{u \in U}}\int_{t \in B}\prod_i \pi(\Phi(s(u), t)_i) \exp\left(-\frac{U(\Phi(s(u), t))}{\epsilon}\right) J(u,t) dt\textcolor{blue}{du}
+%     \]
+%     where $J(u,t) = |\det({D_{u,t}\Phi(s(u),t)})| = \sqrt{\det({D_{u,t}\Phi(s(u),t)}^\top{D_{u,t}\Phi(s(u),t))}}$. Next, we want the region of integration being on the manifold $\mathcal{Z}_n$, meaning that we need to use change of variable on manifold $\mathcal{Z}_n$ and integrate wrt its intrinsic volume measure. We therefore have $d\text{Vol}_{\mathcal{Z}_n}(s) = \sqrt{\det(G)} du$ where $G = D_u s(u)^\top D_u s(u)$. As a result, 
+%     \[
+%     B = \textcolor{blue}{\int_{s \in \mathcal{Z}_n}}\int_{t \in B}\prod_i \pi(\Phi(s(u), t)_i) \exp\left(-\frac{U(\Phi(s(u), t))}{\epsilon}\right) \textcolor{red}{\frac{J(u,t)}{\sqrt{\det(G)}}} dt\textcolor{blue}{d\text{Vol}_{\mathcal{Z}_n}(s)}
+%     \]
+%     In short
+%     \begin{enumerate}
+%         \item Phase 1: Converting to a Lebesgue measure integration.
+%         \item Phase 2: Leverage the relationship between intrinsic measure and Lebesgue measure to perform manifold change of variable.
+%     \end{enumerate}
+% \end{remark}
+
+\begin{remark}[Change of Variable Used in Lemma D.14]
+    Let's revisit how these geometric properties are used to compute the expected normal deviation. To simplify the notation, let the unnormalized base measure be $\mu(dz) = \prod_i \pi(z_i) \exp(-U_n(z)/\epsilon) dz$. The truncated probability measure $\bar{P}$ on the tubular neighborhood $\mathcal{N}_r(\mathcal{Z}_n)$ can be expressed in terms of its differential:
+    \[
+    \bar{P}(dz) = \frac{\mu(dz)}{\int_{\mathcal{N}_r(\mathcal{Z}_n)} \mu(dz)} := \frac{A(dz)}{B}.
+    \]
+    
+    We assume that $z \in \mathcal{N}_r(\mathcal{Z}_n)$ admits a local parametrization $z = \Psi_n(u,t) := \Phi_n(s(u),t)$, where $u \in U \subset \mathbb{R}^p$ are the local coordinates of the manifold, $s: U \to \mathcal{Z}_n$ maps the coordinates to the manifold, and $t \in B_r^{n-p}$ represents the normal coordinates. 
+    
+    \textbf{Phase 1: Ambient coordinates to local tubular coordinates.}\\
+    We first apply the standard multivariate change of variables from $z \in \mathbb{R}^n$ to $(u,t) \in \mathbb{R}^p \times \mathbb{R}^{n-p}$. The unnormalized differential $A(dz)$ becomes:
+    \[
+    A(u,t) = \prod_i \pi(\Psi_n(u,t)_i) \exp\left(-\frac{U_n(\Psi_n(u,t))}{\epsilon}\right) \textcolor{blue}{J_{\Psi_n}(u,t) \,du \,dt},
+    \]
+    where $J_{\Psi_n}(u,t) = |\det(D_{(u,t)}\Psi_n(u,t))|$ is the absolute value of the determinant of the $n \times n$ Jacobian matrix of $\Psi_n$. 
+    
+    Consequently, the normalizing constant $B$ over the tubular neighborhood is:
+    \[
+    B = \textcolor{blue}{\int_{U}}\int_{B_r^{n-p}} \prod_i \pi(\Psi_n(u,t)_i) \exp\left(-\frac{U_n(\Psi_n(u,t))}{\epsilon}\right) J_{\Psi_n}(u,t) \textcolor{blue}{\,dt \,du}.
+    \]
+
+    \textbf{Phase 2: Local coordinates to intrinsic manifold integration.}\\
+    Next, we want to integrate over the manifold $\mathcal{Z}_n$ with respect to its intrinsic volume measure, $d\mathrm{Vol}_{\mathcal{Z}_n}(s)$, rather than the parameter space $U$. The volume form on the submanifold is given by $d\mathrm{Vol}_{\mathcal{Z}_n}(s) = \sqrt{\det(G(u))} \,du$, where $G(u) = D_u s(u)^\top D_u s(u)$ is the metric tensor induced by the embedding. 
+    
+    Rearranging this gives $du = \textcolor{red}{\frac{1}{\sqrt{\det(G(u))}}} \textcolor{blue}{d\mathrm{Vol}_{\mathcal{Z}_n}(s)}$. Substituting this into our integral for $B$ yields:
+    \[
+    B = \textcolor{blue}{\int_{\mathcal{Z}_n}}\int_{B_r^{n-p}}\prod_i \pi(\Phi_n(s, t)_i) \exp\left(-\frac{U_n(\Phi_n(s, t))}{\epsilon}\right) \textcolor{red}{\left[ \frac{J_{\Psi_n}(u,t)}{\sqrt{\det(G(u))}} \right]} dt \textcolor{blue}{\,d\mathrm{Vol}_{\mathcal{Z}_n}(s)}.
+    \]
+    
+    The bracketed term $\textcolor{red}{\frac{J_{\Psi_n}(u,t)}{\sqrt{\det(G(u))}}}$ is precisely the definition of $J_n(s,t)$, the Jacobian factor that couples the normal integration with the intrinsic manifold integration. This can be seen as a geometric volume distortion factor (in this way, one can bypass the transformation to $U$.)
+\end{remark}
+
+
+\section{Proof of Stopping Rule}
+
+\clearpage
+\bibliography{ref}
+\bibliographystyle{abbrv}
+\end{document}
