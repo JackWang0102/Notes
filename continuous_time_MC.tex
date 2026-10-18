@@ -1,42 +1,6 @@
-\documentclass[12pt,a4paper]{article}
-\usepackage[utf8]{inputenc}      % UTF-8 encoding
-\usepackage[T1]{fontenc}         % Font encoding
-\usepackage{geometry}            % Page margins
-  \geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
-\usepackage{amsmath,amssymb,amsthm}  % Math packages
-\usepackage[inline]{enumitem}
-\usepackage{hyperref}            % Hyperlinks in TOC, references
-  \hypersetup{colorlinks=true,linkcolor=blue}
+\documentclass[11pt,twoside]{article}
+\input{notes-preamble}
 
-
-% Theorem environments
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-\theoremstyle{remark}
-\newtheorem*{remark}{Remark}
-\newtheorem{assumption}{Assumption}
-
-% \usepackage[most]{tcolorbox}
-% \newtcolorbox{remark}{
-%   colback=green!3!white,
-%   colframe=green!30!black,
-%   fonttitle=\bfseries,
-%   title=Remark,
-%   arc=1.5mm,
-%   boxrule=0.4pt  % Thinner lines look more delicate
-% }
-
-% Custom commands
-\input{math_command}
-\newcommand{\red}{\textcolor{red}}
-\newcommand{\blue}{\textcolor{blue}}
-
-% Article
 \title{Continuous Time Markov Chains}
 \author{Wen-Hung Wang}
 \date{\today}

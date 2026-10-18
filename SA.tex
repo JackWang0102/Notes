@@ -1,92 +1,6 @@
-\documentclass[11pt]{article}
-\usepackage{amsmath,amsfonts,amssymb,mathrsfs}
-\usepackage{amsthm}
-\usepackage{graphicx,psfrag,epsf,url,wrapfig}
-\usepackage{enumitem,color,centernot}
-\usepackage[numbers]{natbib}
-\usepackage{hyperref}
-\usepackage{adjustbox,booktabs,arydshln}
-\usepackage{caption}
-\usepackage{subcaption}
-\usepackage{xcolor,tikz}
-\usetikzlibrary{decorations.pathreplacing,angles,quotes}
-% \usepackage{algorithm}
-% \usepackage[noend]{algpseudocode}
-%\usepackage{floatrow}
+\documentclass[11pt,twoside]{article}
+\input{notes-preamble}
 
-\usepackage[ruled,vlined]{algorithm2e}
-\usepackage{graphicx}
-\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
-\renewcommand{\baselinestretch}{1.355}
-%\newfloatcommand{capbtabbox}{table}[][\FBwidth]
-
-%\usepackage{bbm}
-\setlength{\oddsidemargin}{-0.15in}
-%\setlength{\evensidemargin}{0.0in}
-\setlength{\topmargin}{-0.3in}  % 0.3 -0.1in
-\setlength{\textheight}{9.2in}  % 9.1 9.3in
-\setlength{\textwidth}{6.9in}
-\setlength{\parindent}{0.25in}
-\setlength{\headsep}{0in}
-
-%%%% cross reference 
-\usepackage{xr}
-%\externaldocument{supp13}
- 
-%\usepackage[nolists,tablesfirst]{endfloat}% To `separate' figures and tables from text if required
-
-\usepackage{tikz}
-\usepackage{pifont}
-
-% --- TikZ Libraries ---
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, shadows}
-
-\input{math_command}
-\newcommand{\red}{\textcolor{red}}
-\newcommand{\blue}{\textcolor{blue}}
-
-\newcommand{\theHalgorithm}{\arabic{algorithm}}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}{Lemma}[section]
-\newtheorem{definition}{Definition}[section]
-\newtheorem{corollary}{Corollary}[section]
-\newtheorem{formula}{Formula}[section]
-%\newtheorem{algorithm}{Algorithm}[section]
-\newtheorem{proposition}{Proposition}[section]
-\newtheorem{example}{Example}[section]
-\newtheorem{remark}{Remark}
-\newtheorem{assumption}{Assumption}
-
- %%%%%%%%%%%% Journal definitions %%%%%%%%%%%%%%%%%%%%%%%%%
-\def\AJE{{ American Journal of Epidemiology}}
-\def\ANNALS{{ Annals of Statistics}}
-\def\BIOK{{ Biometrika}}
-\def\BMCS{{ Biometrics}}
-\def\STATMED{{ Statistics in Medicine}}
-\def\STATSCI{{ Statistical Science}}
-\def\JSPI{{ Journal of Statistical Planning \& Inference}}
-\def\JRSSB{{ Journal of the Royal Statistical Society, Series B}}
-\def\COMMS{{ Communications in Statistics, Theory \& Methods}}
-\def\JQT{{ Journal of Quality Technology}}
-\def\TECH{{ Technometrics}}
-\def\JASA{{ Journal of the American Statistical Association}}
-\def\CSDA{{ Computational Statistics \& Data Analysis}}
-\def\JCGS{{ Journal of Computational and Graphical Statistics}}
-\def\JCB{{ Journal of Computational Biology}}
-\def\BIOINF{{ Bioinformatics}}
-\def\JAMA{{ Journal of the American Medical Association}}
-\def\JNUTR{{ Journal of Nutrition}}
-\def\LETTERS{{ Letters in Probability and Statistics}}
-\def\JABES{{ Journal of Agricultural, Biological and
-                      Environmental Statistics}}
-\def\TECH{{ Technometrics}}
-\def\COMMS{{ Communications in Statistics, Series A}}
-\def\SCAN{{ Scandinavian Journal of Statistics}}
-\def\PNAS{{ Proceedings of the National Academy of Sciences USA}}
-\def\JMLR{{ Journal of Machine Learning Research}}
-\def\JSCS{{Journal of Statistical Computation and  Simulation}}
-
-% Article
 \title{Note on Stoichastic Approximation and related Topics}
 \author{Wen-Hung Wang}
 \date{\today}
@@ -318,7 +232,8 @@ Therefore, the randomness of $x_k$ is completely determined by the history $Y_0,
 
     \paragraph{Putting it all together.} Combining all the results yields the \emph{Lyapunov Drift Inequality}:
     \begin{align*}
-        E[M(x_{k+1})] &\leq E[M(x_k)] - 2\alpha_k(1-\beta)E[M(x_k)] + 2\alpha_k^2(A_1+1)^2 E[M(x_k)] + 2\alpha_k^2[(A_1+1)\|x^*\|_2+ B_1]^2 \\
+        E[M(x_{k+1})] &\leq E[M(x_k)] - 2\alpha_k(1-\beta)E[M(x_k)] \\
+        &\quad + 2\alpha_k^2(A_1+1)^2 E[M(x_k)] + 2\alpha_k^2[(A_1+1)\|x^*\|_2+ B_1]^2 \\
         & = \underbrace{\big(1-2\alpha_k(1-\beta)+2\alpha_k^2(A_1+1)^2\big)}_{\text{Want to choose $\alpha_k$ small s.t. this term $<1$}} E[M(x_k)] + \underbrace{2\alpha_k^2[(A_1+1)\|x^*\|_2+ B_1]^2}_{\text{Error}}, 
     \end{align*}
     which can be interpreted as follows: 

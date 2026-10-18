@@ -1,10 +1,15 @@
-% Shared preamble for templates/*.tex and future notes.
+% Shared formatting for all notes in this repository.
+% Adapted from the UC Berkeley EECS CS267 lecture-note template:
+% https://www.cs.cmu.edu/~ggordon/10725-F12/template.tex
+% Personal-note adaptation: boxed title/author/date; ordinary numbering;
+% existing natbib citations and mathematical environments are retained.
 % Load after \documentclass; compile from the repository root.
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amsfonts,amssymb,mathrsfs,amsthm}
 \usepackage{graphicx,wrapfig}
-\usepackage{enumerate,centernot}
+\usepackage[inline,shortlabels]{enumitem}
+\usepackage{centernot}
 \usepackage[numbers]{natbib}
 \usepackage{adjustbox,booktabs,arydshln}
 \usepackage{caption,subcaption}
@@ -16,14 +21,40 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 
-% Match the layout used by causal_basics.tex and NE-EFIpf.tex.
-\renewcommand{\baselinestretch}{1.355}
-\setlength{\oddsidemargin}{-0.15in}
-\setlength{\topmargin}{-0.3in}
-\setlength{\textheight}{9.2in}
-\setlength{\textwidth}{6.9in}
-\setlength{\parindent}{0.25in}
-\setlength{\headsep}{0in}
+% Berkeley EECS lecture-note page layout and paragraph spacing.
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{-0.25in}
+\setlength{\topmargin}{-0.6in}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8.5in}
+\setlength{\headsep}{0.75in}
+\setlength{\parindent}{0in}
+\setlength{\parskip}{0.1in}
+
+% A wrapping box accommodates long research-note titles.
+\makeatletter
+\renewcommand{\maketitle}{%
+  \pagestyle{myheadings}%
+  \thispagestyle{plain}%
+  \begin{center}
+    \fbox{%
+      \begin{minipage}{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}
+        \vspace{2mm}
+        \textbf{Research Notes}\hfill\@date\par
+        \vspace{2mm}
+        {\centering\Large\bfseries\@title\par}
+        \vspace{2mm}
+        {\itshape Author: \@author\par}
+        \vspace{2mm}
+      \end{minipage}%
+    }
+  \end{center}
+  \markboth{Research Notes}{Research Notes}%
+  {\footnotesize\itshape
+    Style adapted from the UC Berkeley EECS lecture-note template.\par}
+  \vspace{4mm}%
+}
+\makeatother
 
 \input{math_command}
 \newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
