@@ -13,28 +13,44 @@
 
 \begin{document}
 \maketitle
+\textbf{Abstract.} This note discusses some basic concepts used is my causal inference project. Specifically, it does not discuss topics on causal graphs such as structural learning. We focus on inference given a DAG, with a focus on missing confounder problems. Several methodologies tackling this problem are briefly introduced. 
+
 \tableofcontents
 \bigskip
+\section{Introduction}
+Identifying causality has been of interest in scientific field for decades. However, randomized trials, which is the gold standard in causal inference, might not be used due to various reasons such as ethical issues, high costs, etc. Observational data, on the other hand, is easier to obtain but lack some desired control in order to make causal statements. For example, the existence of unmeasured confounders relates treatments and outcomes, violating the exchangeability condition. Thus, making causal claims from observational data is at the heart of causal inference. 
+
+Here are three types of randomized designs
+\begin{itemize}
+    \item Completely randomized design: $n_1$ out of $n$ objects randomly assigned to the treatment.
+    \item Bernoulli design: for each individual, assignment treatment according a Bernoulli($p$) random variable.
+    \item Matched pair design: match individuals into pairs and randomly assign treatment among them.
+\end{itemize}
+
 
 \section{Potential Outcomes and Causal Estimands}
 \label{sec:potential-outcomes}
 
-Let $Y_i(a)$ be the \emph{potential outcome} of individual $i$ under
- treatment level $a$.
+Let $Y_i(a)$ be the \emph{potential outcome} of individual $i$ under treatment level $a$.
+\begin{itemize}
+    \item Binary treatment: The average treatment effect (ATE) is
+    \begin{equation}
+    \label{eq:ate}
+        \operatorname{ATE} = E\big[Y(1)-Y(0)\big].
+    \end{equation}
+    \item Continuous treatment: The \emph{dose-response function} is
+    \begin{equation}
+    \label{eq:dose-response}
+        \mu(a) = E\big[Y(a)\big].
+    \end{equation}
+\end{itemize}
 
-\paragraph{Binary treatment.}
-The average treatment effect (ATE) is
-\begin{equation}
-\label{eq:ate}
-    \operatorname{ATE} = E\big[Y(1)-Y(0)\big].
-\end{equation}
+\begin{remark}
+    Individual treatment effect (ITE) is defined as $Y_i(a)-Y_i(a')$. 
+\end{remark}
 
-\paragraph{Continuous treatment.}
-The \emph{dose-response function} is
-\begin{equation}
-\label{eq:dose-response}
-    \mu(a) = E\big[Y(a)\big].
-\end{equation}
+A fundamental challenge in causal inference is the counterfactual (the \emph{what if}, missing data problem). For each individual, we only observe the potential outcome corresponding to the intervention actually received; the alternative intervention remains unobserved.
+
 
 \subsection{Factual and Potential Outcomes in an SCM}
 
@@ -54,7 +70,7 @@ The same individual-level exogenous error is held fixed under the
 \begin{equation}
 \label{eq:consistency}
     \underbrace{y_i}_{\textcolor{red}{\text{observation}}}
-    = \underbrace{Y_i(a_i)}_{\textcolor{purple}{\text{causal quantity}}},
+    = \underbrace{Y_i(a_i)}_{\textcolor{blue}{\text{causal quantity}}},
 \end{equation}
 which satisfies \emph{consistency}.
 
@@ -71,21 +87,22 @@ The central question is:
 \end{quote}
 That is, how can we make causal claims from observational data?
 
-\section{Linking Causal Estimands to Observational Data}
+\section{Linking Causal Estimands to Observational Data: Adjustment Formula and Inverse Propensity Weighting}
 \label{sec:identification}
 
-Assume the following conditions.
+To estimate causal estimand from observational data, the so-called $g-$formula or adjustment formula is used. Assume the following conditions.
 \begin{assumption}[Consistency]
 The observed outcome agrees with the potential outcome at the
- observed treatment level: $Y=Y(A)$.
+ observed treatment level: $Y=Y(A)$, or, equivalently, \(Y=AY(1)+(1-A)Y(0)\) for binary treatments.
 \end{assumption}
 
-\begin{assumption}[Conditional ignorability]
+\begin{assumption}[Conditional ignorability/exchangeability]
 For each treatment level $a$ of interest,
 \begin{equation}
 \label{eq:ignorability}
     Y(a) \mathrel{\indep} A \mid Z.
 \end{equation}
+Note that this is weak ignorability \cite{Hirano2004}. Strong ignorability \cite{rosenbaum1983central} says $ \{Y(a), a \in \mathcal{A}\} \mathrel{\indep} A \mid Z.$
 \end{assumption}
 
 \begin{assumption}[Positivity or overlap]
@@ -103,14 +120,25 @@ for the treatment levels of interest and almost every $z$ in the
  target population.
 \end{assumption}
 
-Under these assumptions,
+Under these assumptions, there are two methods to identify average effects:
+\begin{itemize}
+    \item $g-$formula/ standardization: using outcome regression $E[Y|Z,A]$.
+    \item Inverse propensity weighting: using propensity score, $P(A=1|Z)$.
+\end{itemize}
+
+\begin{remark}
+    Crucially, observational data often fails to satisfy conditional ignorability due to unmeasured confounders. Therefore, in practice, practitioners have to use domain knowledge to include as many as confounders. However, including too many variables is problematic too.
+\end{remark}
+
+\subsection{$g-$formula/ standardization} 
+Under these assumptions, 
 \begin{align}
 \label{eq:adjustment-derivation}
-    E\big[Y(a)\big]
+    \underbrace{E\big[Y(a)\big]}_{\text{causal}}
     &= E_Z\!\left[E\big[Y(a)\mid Z\big]\right] \notag\\
     &= E_Z\!\left[E\big[Y(a)\mid Z,A=a\big]\right] \notag\\
     &= E_Z\!\left[E\big[Y\mid Z,A=a\big]\right] \notag\\
-    &= \int E\big[Y\mid Z=z,A=a\big]\,dF_Z(z).
+    &= \int \underbrace{E\big[Y\mid Z=z,A=a\big]}_{\text{observational}}\,dF_Z(z).
 \end{align}
 The first equality uses iterated expectation, the second uses
  conditional ignorability, and the third uses consistency.
@@ -127,8 +155,66 @@ is called the \emph{adjustment formula} or \emph{$g$-formula}.
 In our research, we do not address causal discovery or adjustment-set
  selection. The causal directed acyclic graph (DAG) is already given.
 Causal graphs can be used to find adjustment sets, for example through
- the back-door criterion.
+ the \emph{back-door criterion.}
 \end{remark}
+
+\subsection{Inverse propensity weighting}
+The motivation of propensity score is to study causality using observational data, i.e., identify causal effect. The basic idea behind IPW is to link association to causality through reweighting outcomes. We first consider a discrete confounder example in which $Z$ is discrete.
+\[
+E[Y(a)] = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}} 
+\]
+while association quantity is, by iterated expectation 
+\[
+E[Y|A=a] = E[E[Y|A=a,Z]|A=1] = \sum_z E[Y|A=a,Z]\textcolor{blue}{P(Z=z|A=a)}.
+\]
+So the question becomes can we find a $f(a,z)$ such that 
+\[
+\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z|A=a)}\textcolor{red}{f(z,a)} = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}.
+\]
+Thus taking 
+\[
+\boxed{
+f(z,a) = \frac{P(Z=z)}{P(Z=z|A=a)} = \frac{P(A=a)}{P(A=a|Z=z)}}
+\]
+gives the desired result. It can be shown that, under the above assumptions
+\[
+E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P(A=a|Z)}\right], 
+\]
+which consists only observed data.
+\begin{remark}
+    This analysis suggests that the imbalance problem $P(Z=z) \neq P(Z=z|A=a)$ is the main cause for this fact, i.e., covariate (confounder) distribution in different treatment groups is not the same. 
+\end{remark}
+
+
+Let's consider a binary treatment first. 
+\begin{definition}[Propensity Score]
+    The propensity score \cite{rosenbaum1983central} is defined as 
+    \[
+    e(z) = P(A=1|Z=z),
+    \]
+    which can be estimated by logistic regression.
+\end{definition}
+
+\emph{Inverse Propensity Weighting (IPW)} estimates the ATE using
+\[
+\boxed{
+\widehat{\tau}_{\mathrm{IPW}}
+=
+\frac1n\sum_{i=1}^n
+\left[
+\frac{A_iY_i}{\widehat e(Z_i)}
+-
+\frac{(1-A_i)Y_i}{1-\widehat e(Z_i)}
+\right],}
+\]
+This is called Horvitz–Thompson estimator \cite{Horvitz01121952}. To see why we use this estimator, we compute, assuming consistency, conditional ignorability, and positivity
+\begin{align*}
+    E\left[\frac{AY}{ e(Z)}\right] &= E_Z\left\{E\left[\frac{AY}{e(Z)}\big|Z\right]\right\} \\
+    &= E_Z\left\{E\left[\frac{AY(1)}{e(Z)}\big|Z\right]\right\} \\
+    &= E_Z\left\{E\left[A\big|Z\right]E\left[\frac{Y(1)}{e(Z)}\big|Z\right]\right\} \\
+    & = E_Z\left\{\frac{P(A=1|Z)}{e(Z)}E\left[{Y(1)}\big|Z\right]\right\} = E[Y(1)].
+\end{align*}
+Similarly, we can show that $E\left[\frac{(1-A)Y}{1-e(Z)}\right]=E[Y(0)]$.
 
 \section{Confounding: Correlation versus Causation}
 \label{sec:confounding}
@@ -147,8 +233,7 @@ Suppose that $Z$ is a confounder. Without adjustment, correlation
 \end{tikzpicture}
 \end{center}
 
-\subsection{A Linear Gaussian Example}
-
+\paragraph{A Linear Gaussian Example}
 Consider
 \begin{align}
 \label{eq:gaussian-model}
@@ -180,7 +265,15 @@ Here $\var(A)=2$ and $\cov(A,Z)=1$. Consequently,
     \qquad\text{versus}\qquad
     \underbrace{E[Y(a)]=\tau a}_{\text{causal mean}}.
 \end{equation}
-Therefore, we need the $g$-formula and adjustment for $Z$.
+Therefore, we need the $g$-formula and adjustment for $Z$. To see this, consider model \eqref{eq:observational-vs-causal} where $Z$ is assumed observable here; then regressing $Y$ on \emph{both} $A$ and $Z$ gives an estimate of $E[Y|Z=z,A=a]$ in $g-$formula \eqref{eq:g-formula}, denoted as $\hat{m}(a, Z_i)=\hat{\tau}a + \hat{\beta}Z_i$. The estimated dose-response function becomes
+\[
+\hat{\mu}(a) = \widehat{E[Y(a)]} = \frac{1}{n}\sum_{i=1}^n\hat{m}(a, Z_i).
+\]
+One may estimate $\mu(a)-\mu(a')$ by 
+\[
+\frac{1}{n}\sum_{i=1}^n\hat{m}(a, Z_i) - \frac{1}{n}\sum_{i=1}^n\hat{m}(a', Z_i) = \hat{\tau}(a-a')
+\]
+under the constant $\tau$ assumption.
 
 \section{The Problem of Missing Confounders}
 \label{sec:missing-confounders}
@@ -204,5 +297,9 @@ If $Z$ is missing, we ask whether $\tau$ can be identified from
 \]
 In the example above, $X=(X_1,X_2)$ consists of noisy proxies for $Z$.
 Some related works study identification conditions for such models.
+
+\clearpage
+\bibliography{ref}
+\bibliographystyle{abbrv}
 
 \end{document}
