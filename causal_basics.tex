@@ -57,7 +57,7 @@ In a \emph{conditionally randomized} design, treatment probabilities may vary wi
 \section{Potential Outcomes and Causal Estimands}
 \label{sec:potential-outcomes}
 
-\revision{Let $Y_i(a)$ be the \emph{potential outcome} of individual $i$ under treatment level $a$.}{Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates. Write $Y_i(a)$ for individual $i$'s potential outcome under a specified intervention setting treatment to $a$. Expectations below refer to the target population.}
+\revision{Let $Y_i(a)$ be the \emph{potential outcome} of individual $i$ under treatment level $a$.}{Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates. Write $Y_i(a)$ for individual $i$'s potential outcome under a specified intervention setting treatment to $a$. Expectations below refer to the target population \cite{Rubin1974EstimatingCE}.}
 \begin{itemize}
     \item Binary treatment: The average treatment effect (ATE) is
     \begin{equation}
@@ -71,8 +71,8 @@ In a \emph{conditionally randomized} design, treatment probabilities may vary wi
     \end{equation}
 \end{itemize}
 
-\begin{remark}
-    Individual treatment effect (ITE) is defined as $Y_i(a)-Y_i(a')$.
+\begin{remark}[Comparing two outcomes for the same person]
+\revision{Individual treatment effect (ITE) is defined as $Y_i(a)-Y_i(a')$.}{The individual treatment effect (ITE), $Y_i(a)-Y_i(a')$, compares what would happen to the \emph{same person} under two treatment levels. For binary treatment, this is $Y_i(1)-Y_i(0)$. We usually cannot observe both outcomes for one person, so we cannot directly calculate that person's treatment effect from the observed data.}
 \end{remark}
 
 A fundamental challenge in causal inference is the counterfactual (the \emph{what if}, missing data problem). For each individual, we only observe the potential outcome corresponding to the intervention actually received; the alternative intervention remains unobserved.
@@ -118,9 +118,7 @@ The same individual-level exogenous error is held fixed under the
 which satisfies \emph{consistency}.
 
 \begin{remark}[Factual versus causal quantities]
-\revision{$Y$ is the factual outcome, an observational (non-causal) quantity.}{$Y$ is the observed outcome. Its distribution is an observational quantity; this does not mean that treatment cannot causally affect $Y$.}
-$Y(a)$ is a potential outcome, a causal quantity. In $Y(a)$, the
- treatment level $a$ is fixed.
+\revision{$Y$ is the factual outcome, an observational (non-causal) quantity. $Y(a)$ is a potential outcome, a causal quantity. In $Y(a)$, the treatment level $a$ is fixed.}{$Y$ records what actually happened under the treatment a person received. $Y(a)$ asks what would happen if we set that person's treatment to $a$. For example, $E[Y\mid A=1]$ is the average outcome among people who actually received treatment, while $E[Y(1)]$ is the average outcome if everyone in the target population received treatment. The first describes an observed group; the second describes an intervention. They need not be equal because the treated group may differ from the rest of the population.}
 \end{remark}
 
 The central question is:
@@ -134,6 +132,8 @@ That is, how can we make causal claims from observational data?
 \label{sec:identification}
 
 \revision{To estimate causal estimand from observational data, the so-called $g-$formula or adjustment formula is used. Assume the following conditions.}{To identify causal means from observational data, assume consistency, conditional exchangeability, and positivity. Under these conditions, the adjustment formula and IPW express the same causal estimand as functionals of the observed-data distribution. Estimation is a separate step.}
+\revision{}{For the identification assumptions and the standardization and IPW arguments below, see Chapters 1--3 of Hern{\'a}n and Robins~\cite{hernanrobins2020whatif}.}
+
 \begin{assumption}[Consistency]
 The observed outcome agrees with the potential outcome at the
  observed treatment level: $Y=Y(A)$, or, equivalently, \(Y=AY(1)+(1-A)Y(0)\) for binary treatments.
@@ -145,7 +145,7 @@ For each treatment level $a$ of interest,
 \label{eq:ignorability}
     Y(a) \mathrel{\indep} A \mid Z.
 \end{equation}
-\revision{Note that this is weak ignorability \cite{Hirano2004}. Strong ignorability \cite{rosenbaum1983central} says $ \{Y(a), a \in \mathcal{A}\} \mathrel{\indep} A \mid Z.$}{This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.}
+\revision{Note that this is weak ignorability. Strong ignorability says $ \{Y(a), a \in \mathcal{A}\} \mathrel{\indep} A \mid Z.$}{This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.}
 \end{assumption}
 
 \begin{assumption}[Positivity or overlap]
@@ -164,7 +164,7 @@ for the treatment levels of interest and almost every $z$ in the
 \end{assumption}
 
 \revision{}{\begin{remark}[Continuous treatment]
-For a continuously distributed treatment, $P(A=a\mid Z=z)=0$ at every fixed point, even when overlap holds. Positivity is a condition on the conditional density and support, not on point probabilities. The continuous-treatment $g$-formula identifies the response curve almost everywhere on the relevant support; identifying a specified point value typically requires regularity such as continuity of the conditional mean in $a$.
+For a continuous treatment, such as a dose that can take any value in an interval, the probability of receiving one \emph{exact} dose is zero: $P(A=a\mid Z=z)=0$. This is normal and does not by itself mean that overlap fails. Instead, we ask whether people with covariates $z$ can receive doses near $a$; the density condition $f_{A\mid Z}(a\mid z)>0$ expresses this local availability. There is also a mathematical detail: observed data do not determine the mean response at every single exact dose without further assumptions. We typically assume that nearby doses have similar mean outcomes, for example by assuming continuity of the conditional mean in $a$.
 \end{remark}}
 
 Under these assumptions, \revision{there are two methods to identify average effects:}{two equivalent identification strategies for binary-treatment average effects are:}
@@ -174,7 +174,9 @@ Under these assumptions, \revision{there are two methods to identify average eff
 \end{itemize}
 
 \begin{remark}
-    \revision{Crucially, observational data often fails to satisfy conditional ignorability due to unmeasured confounders. Therefore, in practice, practitioners have to use domain knowledge to include as many as confounders. However, including too many variables is problematic too.}{Unmeasured confounding may violate conditional exchangeability, which generally cannot be tested from the observed data alone. Covariate selection requires subject-matter knowledge and the assumed DAG. Adding variables indiscriminately can introduce bias, for example by conditioning on a collider; adjusting for a mediator can also change the causal estimand.}
+    \revision{Crucially, observational data often fails to satisfy conditional ignorability due to unmeasured confounders. Therefore, in practice, practitioners have to use domain knowledge to include as many as confounders. However, including too many variables is problematic too.}{The goal of adjustment is to compare treated and untreated people who are similar in the baseline factors needed to remove confounding. If an important factor is unmeasured, differences in outcomes may still reflect that factor rather than treatment. This is why conditional exchangeability is also called ``no unmeasured confounding.'' The observed data alone generally cannot tell us whether this assumption is true.
+
+Including more variables is not automatically better. For example, adjusting for a \emph{collider}, a variable caused by two other variables, can create a misleading association by comparing people with the same value of that variable. Adjusting for a \emph{mediator}, a variable through which treatment affects the outcome, can remove part of the effect we want to study. We therefore use knowledge of the problem and the assumed causal graph to decide which variables to adjust for.}
 \end{remark}
 
 \revision{}{\subsection{Interpreting the identification assumptions}
@@ -206,10 +208,7 @@ $Z$ is the \emph{adjustment set}. The resulting expression,
 is called the \emph{adjustment formula} or \emph{$g$-formula}.
 
 \begin{remark}[Scope of the research]
-In our research, we do not address causal discovery or adjustment-set
- selection. The causal directed acyclic graph (DAG) is already given.
-Causal graphs can be used to find adjustment sets, for example through
- the \emph{back-door criterion.}
+\revision{In our research, we do not address causal discovery or adjustment-set selection. The causal directed acyclic graph (DAG) is already given. Causal graphs can be used to find adjustment sets, for example through the \emph{back-door criterion.}}{We start with a given causal graph: we assume that the directions of the relevant causal relationships have already been specified. We also take the required adjustment variables as given. Our research asks how to learn the treatment effect when some of those variables are unmeasured. Choosing a graph or an adjustment set is a separate task. One graphical tool for choosing an adjustment set is the \emph{back-door criterion}, which checks whether adjustment blocks paths that create confounding without blocking the causal effect of interest \cite{Pearl2009}.}
 \end{remark}
 
 \subsection{Inverse propensity weighting}
@@ -238,7 +237,9 @@ E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P
 \]
 \revision{which consists only observed data.}{which depends only on the observed-data distribution. These indicator-weight identities apply to discrete treatments with positive conditional treatment probabilities.}
 \begin{remark}
-    \revision{This analysis suggests that the imbalance problem $P(Z=z) \neq P(Z=z|A=a)$ is the main cause for this fact, i.e., covariate (confounder) distribution in different treatment groups is not the same.}{Under the identification assumptions, standardization and IPW correct the discrepancy between the target covariate distribution and the treatment-specific distribution. Covariate imbalance can create confounding bias when the covariates also predict potential outcomes; imbalance alone does not necessarily imply bias. Balancing measured covariates does not establish exchangeability with respect to unmeasured confounders.}
+    \revision{This analysis suggests that the imbalance problem $P(Z=z) \neq P(Z=z|A=a)$ is the main cause for this fact, i.e., covariate (confounder) distribution in different treatment groups is not the same.}{The treated and untreated groups may contain different kinds of people. For example, one group may contain a larger proportion of people with a particular baseline characteristic. This difference is called \emph{covariate imbalance}. If that characteristic also affects potential outcomes, a crude comparison may mix its influence with the treatment effect.
+
+Standardization averages both groups' predicted outcomes over the same target mix of covariates. IPW uses weights to make each treatment group represent that target mix. Both recover causal means under the stated assumptions. A difference in covariates does not necessarily create bias if it is unrelated to potential outcomes. Also, making the groups look similar in measured variables does not guarantee that they are similar in unmeasured confounders.}
 \end{remark}
 
 
@@ -266,7 +267,7 @@ E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P
 \frac{(1-A_i)Y_i}{1-\widehat e(Z_i)}
 \right],}
 \]
-\revision{This is called Horvitz–Thompson estimator \cite{Horvitz01121952}. To see why we use this estimator, we compute, assuming consistency, conditional ignorability, and positivity}{This is a Horvitz--Thompson-type estimator \cite{Horvitz01121952}. With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions. To verify the population identity, assume consistency, conditional exchangeability, positivity, and integrable potential outcomes:}
+\revision{This is called Horvitz–Thompson estimator. To see why we use this estimator, we compute, assuming consistency, conditional ignorability, and positivity}{This is a Horvitz--Thompson-type estimator \cite{Horvitz01121952}. With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions. To verify the population identity, assume consistency, conditional exchangeability, positivity, and integrable potential outcomes:}
 \begin{align*}
     E\left[\frac{AY}{ e(Z)}\right] &= E_Z\left\{E\left[\frac{AY}{e(Z)}\big|Z\right]\right\} \\
     &= E_Z\left\{E\left[\frac{AY(1)}{e(Z)}\big|Z\right]\right\} \\
@@ -276,34 +277,12 @@ E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P
 Similarly, we can show that $E\left[\frac{(1-A)Y}{1-e(Z)}\right]=E[Y(0)]$.
 
 \revision{}{\begin{remark}[Weighting and continuous doses]
-Very small $e(Z)$ or $1-e(Z)$ can make IPW unstable. Inspect overlap and covariate balance when implementing the estimator. Trimming or truncating weights can introduce bias or change the target population and should be stated explicitly. For continuous $A$, the displayed indicator estimator cannot estimate $E[Y(a)]$ at a fixed dose: $I(A=a)=0$ almost surely. Continuous-dose estimation instead needs tools such as an outcome model or smoothing with conditional treatment densities.
+IPW gives more weight to people who received a treatment that was unlikely given their covariates. If that probability is very small, one person can receive a huge weight and have a large influence on the estimate. Check whether both treatments are reasonably represented across the relevant covariate groups (\emph{overlap}) and whether weighting makes the measured covariates more similar across treatment groups (\emph{balance}). Removing observations or capping large weights can help with instability, but can also introduce bias or change which population the result describes.
+
+The displayed IPW estimator is for binary treatment. With a continuous dose, almost surely no sampled person receives a prespecified exact dose $a$, so $I(A=a)=0$ and that formula cannot estimate the mean outcome at $a$. We instead need a method that learns across doses, such as an outcome regression or a method that combines information from nearby doses using conditional treatment densities.
 \end{remark}
 
-\subsection{A numerical comparison of standardization and IPW}
-The lecture's Table 1.6 contains 20 individuals. Translating its covariate $L$ to $Z$, the observed strata are
-\begin{center}
-\begin{tabular}{ccccc}
-\toprule
-$Z$ & Stratum size & Treated / events & Controls / events & $e(Z)$ \\
-\midrule
-0 & 8  & $4/1$ & $4/1$ & $1/2$ \\
-1 & 12 & $9/6$ & $3/2$ & $3/4$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-Here ``events'' means observations with $Y=1$. Under the identification assumptions, standardization gives
-\[
- \mu(1)=\frac14\frac{8}{20}+\frac69\frac{12}{20}=\frac12,
- \qquad
- \mu(0)=\frac14\frac{8}{20}+\frac23\frac{12}{20}=\frac12.
-\]
-IPW gives the same means:
-\[
- \mu(1)=\frac1{20}\left(\frac1{1/2}+\frac6{3/4}\right)=\frac12,
- \qquad
- \mu(0)=\frac1{20}\left(\frac1{1/2}+\frac2{1/4}\right)=\frac12.
-\]
-Thus the adjusted risk difference is zero, while the crude difference is $7/13-3/7=10/91$. These arithmetic calculations treat the table as the empirical distribution; their causal interpretation depends on the assumptions. The covariate weights here are $P(Z=0)=2/5$ and $P(Z=1)=3/5$; the displayed standardization calculation in lecture Example 1.16 reverses these weights and reports $25/60$. Using the table's actual stratum proportions makes standardization agree with Example 1.18.}
+}
 
 \section{Confounding: Correlation versus Causation}
 \label{sec:confounding}
@@ -367,6 +346,21 @@ One may estimate $\mu(a)-\mu(a')$ by
 \section{The Problem of Missing Confounders}
 \label{sec:missing-confounders}
 
+\revision{}{\subsection{A shared identification obstacle for standardization and IPW}
+Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: their usual causal interpretations rely on the same exchangeability assumption.
+
+For binary treatment, define $m_a(w)=E[Y\mid A=a,W=w]$ and $q_a(w)=P(A=a\mid W=w)$. With positivity and suitable integrability, iterated expectation gives the observational identity
+\begin{equation}
+\label{eq:observed-adjustment-functional}
+ \widetilde\mu_W(a)
+ :=E_W[m_a(W)]
+ =E\!\left[\frac{I(A=a)Y}{q_a(W)}\right].
+\end{equation}
+This equality does not require exchangeability. Without exchangeability given $W$, however, neither side is guaranteed to equal the causal mean $E[Y(a)]$. Thus, a correctly estimated outcome regression or propensity score based only on $W$ can still target the wrong quantity. Balancing $W$ does not in general balance the latent $Z$ or eliminate residual confounding. Choosing IPW instead of standardization does not resolve this identification problem.
+
+The relevant question is whether the observed variables constitute a sufficient adjustment set. An unavailable variable does not automatically invalidate identification if another observed set already ensures exchangeability. When residual confounding remains, identification requires additional structure, such as suitable assumptions about proxies or the latent-confounder model; these assumptions must be justified separately.}
+
+
 Recall the adjustment formula:
 \begin{align}
 \label{eq:missing-confounder-formula}
@@ -385,10 +379,18 @@ If $Z$ is missing, we ask whether $\tau$ can be identified from
     (Y,A,\underbrace{X}_{\text{proxy}}).
 \]
 In the example above, $X=(X_1,X_2)$ consists of noisy proxies for $Z$.
-\revision{Some related works study identification conditions for such models.}{The presence of proxies alone does not guarantee identification. Additional assumptions on the proxy measurements and their relationship to the latent confounder are needed; an assumed DAG must be paired with sufficient identifying restrictions.}
+\revision{Some related works study identification conditions for such models.}{The presence of proxies alone does not guarantee identification. Additional assumptions on the proxy measurements and their relationship to the latent confounder are needed; an assumed DAG must be paired with sufficient identifying restrictions.
+
+A reference directly related to this research direction is Miao et al.~\cite{miao2018proxy}. They show that suitable proxies can identify causal effects under additional assumptions about their causal relationships and how much information they carry about the unmeasured confounder. Their result does not mean that any two noisy proxies can be substituted for $Z$ in an ordinary adjustment regression.}
 
 \revision{}{\begin{remark}[Unobserved versus partially missing confounders]
-The counterfactual missing-data problem affects every causal study: one potential outcome is unobserved for each individual. An \emph{unmeasured confounder} is a separate problem in which a variable required for adjustment is unavailable. A \emph{partially missing confounder} is measured for some individuals but not others and additionally requires a model or assumptions for its missingness mechanism. These problems should not be conflated.
+Here, ``missing'' can mean three different things:
+\begin{itemize}
+ \item \textbf{A missing potential outcome:} we observe what happened under the treatment a person received, but not what would have happened under the alternative treatment. This is the usual counterfactual problem, even in a randomized study.
+ \item \textbf{An unmeasured confounder:} a variable needed to remove confounding was not collected. In our research setting, the latent variable $Z$ plays this role. Adjusting only for the available variables may leave confounding.
+ \item \textbf{A partially missing confounder:} the variable was collected for some people but is missing for others. We also need assumptions about why its values are missing, and a method for handling those missing values.
+\end{itemize}
+These problems need different assumptions and methods. Our main focus here is the second one: an unmeasured confounder.
 \end{remark}
 
 For the Gaussian example, the role of the proxies can be seen directly. With one proxy $X_1=Z+s e_1$, the population coefficient of $A$ in a regression of $Y$ on $(A,X_1)$ is
