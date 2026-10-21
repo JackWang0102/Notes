@@ -23,13 +23,15 @@
 \tableofcontents
 \bigskip
 \section{Introduction}
-Causal inference seeks to define, identify, and estimate the effect of an intervention on an outcome. Randomized trials provide a benchmark because treatment assignment can ensure exchangeability, but ethical, financial, or practical constraints may prevent their use. Observational studies are often more feasible, yet treatment assignment may depend on factors that also affect potential outcomes. Causal claims from such data therefore require assumptions supported by subject-matter knowledge. Potential outcomes, causal diagrams, and structural causal models provide complementary ways to express these assumptions.
+Causal inference seeks to define, identify, and estimate the effect of an intervention on an outcome. Randomized trials provide a benchmark because treatment assignment can ensure exchangeability, but ethical, financial, or practical constraints may prevent their use. 
+
+Observational studies are often more feasible, yet treatment assignment may depend on factors that also affect potential outcomes. Causal claims from such data therefore require assumptions supported by subject-matter knowledge. Potential outcomes, causal diagrams, and structural causal models provide complementary ways to express these assumptions.
 
 Three common randomized designs are:
 \begin{itemize}
-    \item Completely randomized design: exactly $n_1$ of $n$ individuals are selected uniformly at random to receive treatment.
-    \item Bernoulli design: individuals receive treatment independently with probability $p\in(0,1)$; the treated sample size is random.
-    \item Matched pair design: form pairs and randomly assign one individual in each pair to treatment and the other to control.
+    \item \textbf{Completely randomized design}: exactly $n_1$ of $n$ individuals are selected uniformly at random to receive treatment.
+    \item \textbf{Bernoulli design}: individuals receive treatment independently with probability $p\in(0,1)$; the treated sample size is random.
+    \item \textbf{Matched pair design}: form pairs and randomly assign one individual in each pair to treatment and the other to control.
 \end{itemize}
 
 
@@ -46,12 +48,12 @@ In a \emph{conditionally randomized} design, treatment probabilities may vary wi
 
 Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates. Write $Y_i(a)$ for individual $i$'s potential outcome under a specified intervention setting treatment to $a$. Expectations below refer to the target population \cite{Rubin1974EstimatingCE}.
 \begin{itemize}
-    \item Binary treatment: The average treatment effect (ATE) is
+    \item \textbf{Binary treatment}: The average treatment effect (ATE) is
     \begin{equation}
     \label{eq:ate}
         \operatorname{ATE} = E\big[Y(1)-Y(0)\big].
     \end{equation}
-    \item Continuous treatment: The \emph{dose-response function} is
+    \item \textbf{Continuous treatment}: The \emph{dose-response function} is
     \begin{equation}
     \label{eq:dose-response}
         \mu(a) = E\big[Y(a)\big].
@@ -62,10 +64,10 @@ Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates.
 The individual treatment effect (ITE), $Y_i(a)-Y_i(a')$, compares what would happen to the \emph{same person} under two treatment levels. For binary treatment, this is $Y_i(1)-Y_i(0)$. We usually cannot observe both outcomes for one person, so we cannot directly calculate that person's treatment effect from the observed data.
 \end{remark}
 
-A fundamental challenge in causal inference is the counterfactual (the \emph{what if}, missing data problem). For each individual, we only observe the potential outcome corresponding to the intervention actually received; the alternative intervention remains unobserved.
+A fundamental challenge in causal inference is the \emph{counterfactual} (the \emph{what if}, missing data problem). For each individual, we only observe the potential outcome corresponding to the intervention actually received; the alternative intervention remains unobserved.
 
 
-\subsection{Effect scales, causal nulls, and identification}
+\subsection{Common causal effect measures and identification}
 For a binary outcome, let $p_a=P\{Y(a)=1\}$. Common causal effect measures are
 \[
  \mathrm{RD}=p_1-p_0,\qquad
@@ -74,10 +76,17 @@ For a binary outcome, let $p_a=P\{Y(a)=1\}$. Common causal effect measures are
 \]
 when the denominators are nonzero and the odds are finite. Their null values are $0$, $1$, and $1$, respectively. The interpretation of the sign of the risk difference depends on whether $Y=1$ is beneficial or harmful.
 
-The \emph{sharp causal null}, $Y_i(1)=Y_i(0)$ for every individual, implies a zero ATE. The converse is false: positive and negative individual effects may cancel. For example, the lecture's Table 1.1 has equal risks $p_1=p_0=10/20$, although 12 of the 20 individuals have nonzero individual effects.
+% The \emph{sharp causal null}, $Y_i(1)=Y_i(0)$ for every individual, implies a zero ATE. The converse is false: positive and negative individual effects may cancel. For example, the lecture's Table 1.1 has equal risks $p_1=p_0=10/20$, although 12 of the 20 individuals have nonzero individual effects.
 
 \begin{definition}[Identification versus estimation]
-A causal estimand is \emph{identified} under a model if every full-data distribution compatible with the observed-data distribution and the model's assumptions gives the same value of that estimand. \emph{Estimation} uses a finite sample to approximate the identified functional. More data alone cannot resolve nonidentification under the assumed model.
+A causal estimand is \emph{identifiable} under a model if its value is uniquely determined by the \emph{observed-data distribution} under the assumed model. Identification can be done by two approaches:
+\begin{enumerate}
+    \item \textbf{Standardization}
+    \item \textbf{Inverse propensity weighting}
+\end{enumerate}
+
+
+\emph{Estimation} uses a finite sample to approximate the identified functional. More data alone cannot resolve nonidentification under the assumed model.
 \end{definition}
 
 
@@ -126,13 +135,13 @@ The observed outcome agrees with the potential outcome at the
  observed treatment level: $Y=Y(A)$, or, equivalently, \(Y=AY(1)+(1-A)Y(0)\) for binary treatments.
 \end{assumption}
 
-\begin{assumption}[Conditional ignorability/exchangeability]
+\begin{assumption}[Conditional exchangeability]
 For each treatment level $a$ of interest,
 \begin{equation}
 \label{eq:ignorability}
     Y(a) \mathrel{\indep} A \mid Z.
 \end{equation}
-This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.
+This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.
 \end{assumption}
 
 \begin{assumption}[Positivity or overlap]
@@ -150,14 +159,16 @@ for the treatment levels of interest and almost every $z$ in the
  target population.
 \end{assumption}
 
+Positivity + Conditional exchangability is often called \emph{ignorability}. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}.
+
 \begin{remark}[Continuous treatment]
 For a continuous treatment, such as a dose that can take any value in an interval, the probability of receiving one \emph{exact} dose is zero: $P(A=a\mid Z=z)=0$. This is normal and does not by itself mean that overlap fails. Instead, we ask whether people with covariates $z$ can receive doses near $a$; the density condition $f_{A\mid Z}(a\mid z)>0$ expresses this local availability. There is also a mathematical detail: observed data do not determine the mean response at every single exact dose without further assumptions. We typically assume that nearby doses have similar mean outcomes, for example by assuming continuity of the conditional mean in $a$.
 \end{remark}
 
 Under these assumptions, two equivalent identification strategies for binary-treatment average effects are:
 \begin{itemize}
-    \item $g$-formula (standardization): average the outcome regression $E[Y\mid Z,A]$ over the target covariate distribution.
-    \item Inverse propensity weighting: reweight outcomes using the propensity score $P(A=1\mid Z)$.
+    \item \textbf{$g$-formula (standardization)}: average the \emph{outcome regression} $E[Y\mid Z,A]$ over the target covariate distribution.
+    \item \textbf{Inverse propensity weighting}: reweight outcomes using the \emph{propensity score} $P(A=1\mid Z)$.
 \end{itemize}
 
 \begin{remark}
@@ -191,41 +202,68 @@ $Z$ is the \emph{adjustment set}. The resulting expression,
 \label{eq:g-formula}
     \boxed{\mu(a)=\int E\big[Y\mid A=a,Z=z\big]\,dF_Z(z)},
 \end{equation}
-is called the \emph{adjustment formula} or \emph{$g$-formula}.
+is called the \emph{adjustment formula} or \emph{$g$-formula}. An estimator ($g-$estimator or outcome-regression estimator) is
+\begin{equation}
+    \label{eq:g-est}
+    \boxed{\hat{\mu}_{\text{OR}}(a)=\frac{1}{n}\sum_{i=1}^n m(a,Z_i)}
+\end{equation}
+where $m(a,z)$ is a regression function for $E\big[Y\mid A=a,Z=z\big]$.
+
+\begin{remark}[Consistency of $\hat{\mu}_{\text{OR}}(a)$]
+    By LLN, $\hat{\mu}_{\text{OR}}(a)$ converges to $\bar{m}$ where $\bar{m}$ is the limit of the regression function $m$. Therefore, the consistency of $\hat{\mu}_{\text{OR}}(a)$ relies on correct specification of $m$.
+\end{remark}
 
 \begin{remark}[Scope of the research]
 We start with a given causal graph: we assume that the directions of the relevant causal relationships have already been specified. We also take the required adjustment variables as given. Our research asks how to learn the treatment effect when some of those variables are unmeasured. Choosing a graph or an adjustment set is a separate task. One graphical tool for choosing an adjustment set is the \emph{back-door criterion}, which checks whether adjustment blocks paths that create confounding without blocking the causal effect of interest \cite{Pearl2009}.
 \end{remark}
 
 \subsection{Inverse propensity weighting}
-IPW recovers the target covariate distribution by reweighting observed outcomes. For a discrete treatment level $a$ and discrete baseline covariates $Z$, compare the standardized causal mean with the observed mean in treatment group $a$.
+IPW recovers the target covariate distribution by \emph{reweighting observed outcomes} to create pseudo-population. Below analysis is built upon the identification conditions. For a discrete treatment level $a$ and discrete baseline covariates $Z$, compare the standardized causal mean with the observed mean in treatment group $a$.
 \[
 E[Y(a)] = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}
 \]
+where $E[Y|A=a,Z=z]$ is called \emph{outcome regression}.
 The corresponding associational quantity is, by iterated expectation,
 \[
-E[Y\mid A=a] = E\!\left[E[Y\mid A=a,Z]\mid A=a\right] = \sum_z E[Y\mid A=a,Z=z]P(Z=z\mid A=a).
+E[Y\mid A=a] = E\!\left[E[Y\mid A=a,Z]\mid A=a\right] = \sum_z E[Y\mid A=a,Z=z]\textcolor{blue}{P(Z=z\mid A=a)}.
 \]
 The outer conditioning in this decomposition is $A=a$, so the identity applies to either treatment level.
 
 Can we find a weight $f(a,z)$ such that
 \[
-\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z|A=a)}\textcolor{red}{f(a,z)} = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}.
+\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z|A=a)}\textcolor{red}{f(a,z)} = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}?
 \]
 By Bayes' rule, choosing
 \[
 \boxed{
 f(a,z) = \frac{P(Z=z)}{P(Z=z|A=a)} = \frac{P(A=a)}{P(A=a|Z=z)}}
 \]
-gives the desired result. It can be shown that, under the above assumptions
-\[
-E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P(A=a|Z)}\right],
-\]
+gives the desired result. Therefore, the expected potential outcome can be expressed as
+\begin{align*}
+   E[Y(a)] &= \sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z|A=a)}\textcolor{red}{\frac{P(A=a)}{P(A=a|Z=z)}} \\
+   &= \sum_z E\left[Y\frac{P(A=a)}{P(A=a|Z=z)}|A=a,Z=z\right]{P(Z=z|A=a)} \\
+   &= E_Z\left\{E\left[Y\frac{P(A=a)}{P(A=a|Z=z)}|A=a,Z\right]|A=a\right\} \\
+   &= E\left[Y\frac{P(A=a)}{P(A=a|Z)}|A=a\right]
+\end{align*}
+Moreover,
+\begin{equation}
+\label{eq:weight}
+    \boxed{
+E[Y(a)] = \underbrace{E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right]}_{E \text{ over } Y,Z|A} = \underbrace{E\left[Y \frac{I(A=a)}{P(A=a|Z)}\right]}_{E \text{ over } Y,Z,A},}
+\end{equation}
 which depends only on the observed-data distribution. These indicator-weight identities apply to discrete treatments with positive conditional treatment probabilities.
 \begin{remark}
-    The treated and untreated groups may contain different kinds of people. For example, one group may contain a larger proportion of people with a particular baseline characteristic. This difference is called \emph{covariate imbalance}. If that characteristic also affects potential outcomes, a crude comparison may mix its influence with the treatment effect.
+    The treated and untreated groups may contain different kinds of people. For example, one group may contain a larger proportion of people with a particular baseline characteristic. This difference is called \emph{covariate imbalance}.
 
 Standardization averages both groups' predicted outcomes over the same target mix of covariates. IPW uses weights to make each treatment group represent that target mix. Both recover causal means under the stated assumptions. A difference in covariates does not necessarily create bias if it is unrelated to potential outcomes. Also, making the groups look similar in measured variables does not guarantee that they are similar in unmeasured confounders.
+\end{remark}
+
+\begin{remark}[Association is not causality]
+    From the above analysis, we can see that the difference between $E[Y|A=a]$ and $E[Y(a)]$ lies in the weighting of the outcome regression. In $E[Y|A=a]$, the outcome regression is weighted over $P(Z=z|A=a)$; while in $E[Y(a)]$, it is weighted over $P(Z=z)$. For binary treatment, if $P(Z=z|A=1) \neq P(Z=z|A=0) \neq P(Z=z)$, then such covariate imbalance causes $E[Y|A=a] \neq E[Y(a)]$ in population. $Y_i \frac{I(A_i=a)}{P(A_i=a|Z_i)}$ creates pseudo-population, where association is causality. For example, for $a=1$, outcomes are weighted by $1/P(A_i=1|Z_i)$. Of course, $P(A_i=1|Z_i)$ should be estimated (e.g., by logistic regression).
+\end{remark}
+
+\begin{remark}
+    Both identification by standardization and IWP are based on the $g-$formula, which is built upon the identification conditions.
 \end{remark}
 
 
@@ -240,34 +278,54 @@ Now specialize to binary treatment.
 
 The propensity score is a \emph{balancing score}: $A\indep Z\mid e(Z)$. Under conditional exchangeability given $Z$, exchangeability also holds given the true propensity score. This is a population property; fitted scores do not automatically provide exact sample balance or a correct treatment model.
 
+Horvitz--Thompson-type estimator \cite{Horvitz01121952}, which is inspired by \eqref{eq:weight}, is defined by 
+\begin{equation}
+    \label{eq:HT}
+    \boxed{
+    \hat{\mu}_{\mathrm{HT}}(a) = \frac1n\sum_{i=1}^n
+\frac{Y_iI(A_i=a)}{\widehat P(a|Z_i)}}
+\end{equation}
+where $\widehat P(a|Z_i)$ is an estimate of $P(A=a|Z=z)$.
 
 \emph{Inverse Propensity Weighting (IPW)} estimates the ATE using
 \[
 \boxed{
-\widehat{\tau}_{\mathrm{IPW}}
+\widehat{\tau}_{\mathrm{IPW}}= \hat{\mu}_{\mathrm{HT}}(1) - \hat{\mu}_{\mathrm{HT}}(0)
 =
 \frac1n\sum_{i=1}^n
 \left[
 \frac{A_iY_i}{\widehat e(Z_i)}
 -
 \frac{(1-A_i)Y_i}{1-\widehat e(Z_i)}
-\right],}
+\right].}
 \]
-This is a Horvitz--Thompson-type estimator \cite{Horvitz01121952}. With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions. To verify the population identity, assume consistency, conditional exchangeability, positivity, and integrable potential outcomes:
-\begin{align*}
-    E\left[\frac{AY}{ e(Z)}\right] &= E_Z\left\{E\left[\frac{AY}{e(Z)}\big|Z\right]\right\} \\
-    &= E_Z\left\{E\left[\frac{AY(1)}{e(Z)}\big|Z\right]\right\} \\
-    &= E_Z\left\{E\left[A\big|Z\right]E\left[\frac{Y(1)}{e(Z)}\big|Z\right]\right\} \\
-    & = E_Z\left\{\frac{P(A=1|Z)}{e(Z)}E\left[{Y(1)}\big|Z\right]\right\} = E[Y(1)].
-\end{align*}
-Similarly, we can show that $E\left[\frac{(1-A)Y}{1-e(Z)}\right]=E[Y(0)]$.
+This can be seen as a subtraction between two groups of outcomes in a pseudo-population where each sample is weighted by
+\[
+\boxed{
+w_i=\frac{A_i}{\widehat e(Z_i)}+
+\frac{1-A_i}{1-\widehat e(Z_i)}.
+}
+\]
+
+With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions: correct specification of $e$.
 
 \begin{remark}[Weighting and continuous doses]
 IPW gives more weight to people who received a treatment that was unlikely given their covariates. If that probability is very small, one person can receive a huge weight and have a large influence on the estimate. Check whether both treatments are reasonably represented across the relevant covariate groups (\emph{overlap}) and whether weighting makes the measured covariates more similar across treatment groups (\emph{balance}). Removing observations or capping large weights can help with instability, but can also introduce bias or change which population the result describes.
 
-The displayed IPW estimator is for binary treatment. With a continuous dose, almost surely no sampled person receives a prespecified exact dose $a$, so $I(A=a)=0$ and that formula cannot estimate the mean outcome at $a$. We instead need a method that learns across doses, such as an outcome regression or a method that combines information from nearby doses using conditional treatment densities.
+The displayed IPW estimator is for binary treatment. With a continuous dose, almost surely no sampled person receives a prespecified exact dose $a$, so $I(A=a)=0$ and that formula cannot estimate the mean outcome at $a$. We instead need a method that learns across doses, such as an outcome regression or a method that combines information from nearby doses using conditional treatment densities. For example, \cite{Hirano2004} generalizes binary-treatment propensity scores to continuous treatments by conditional density, called generalized propensity score (GPS), given by $r(a,z) = f_{A|Z}(a|z)$. They show its \emph{balancing property} and consider standardization via outcome regression using $r(a,z)$.
 \end{remark}
 
+\begin{remark}
+    The HT estimator is sensitive to overlap and might violate the outcome range, i.e., the estimated ATE might be outside of the outcome range (see Example 3.14 in Dr. Bong's note). The Hajek, or normalized IWP estimator, is proposed to resolve this issue
+    \begin{equation}
+    \label{eq:Hajek}
+    \boxed{
+    \hat{\mu}_{\mathrm{Hajek}}(a) = \left(\sum_{i=1}^n
+\frac{Y_iI(A_i=a)}{\widehat P(a|Z_i)}\right) \big/ \left(\sum_{i=1}^n
+\frac{I(A_i=a)}{\widehat P(a|Z_i)}\right)}
+\end{equation}
+    
+\end{remark}
 
 
 \section{Confounding: Correlation versus Causation}
@@ -333,7 +391,7 @@ under this additive linear model with a constant treatment slope.
 \label{sec:missing-confounders}
 
 \subsection{A shared identification obstacle for standardization and IPW}
-Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: their usual causal interpretations rely on the same exchangeability assumption.
+Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: \emph{their usual causal interpretations rely on the same exchangeability assumption.}
 
 For binary treatment, define $m_a(w)=E[Y\mid A=a,W=w]$ and $q_a(w)=P(A=a\mid W=w)$. With positivity and suitable integrability, iterated expectation gives the observational identity
 \begin{equation}
@@ -390,7 +448,156 @@ With both independent-error proxies, the coefficient of $A$ in a regression on $
 To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.
 
 \section{Causal Inference with Models}
-We refer to Chapters 12 and 13 (partial) in \cite{hernanrobins2020whatif}. In particular, we consider standardization and IP least square methods.
+
+We refer to Chapters 12 and 13 (partially) of
+\cite{hernanrobins2020whatif}. In particular, we consider
+model-based standardization and inverse propensity weighted
+least squares (IPW-WLS).
+
+The nonparametric implementations of these methods may suffer
+from the curse of dimensionality. For example, if $Z$ is a
+$p$-dimensional binary vector, there are $2^p$ possible
+covariate strata. Estimating $E[Y\mid Z=z,A=a]$ separately
+within each stratum requires sufficient observations for
+both treatment groups, which becomes increasingly difficult
+as $p$ grows. By introducing statistical models, we can
+reduce this difficulty and also accommodate continuous
+covariates.
+
+\paragraph{Marginal structural model.}
+Following Chapter 12, consider the model
+\[
+    E[Y(a)] = \beta_0 + \beta_1 a,
+\]
+which is called a marginal structural model (MSM)
+\cite{robins2000marginal}. For a binary treatment
+$A\in\{0,1\}$, the parameter
+\[
+    \beta_1 = E[Y(1)]-E[Y(0)]
+\]
+represents the average treatment effect (ATE).
+
+The key idea is to construct a pseudo-population in
+which treatment assignment is independent of the
+observed confounders $Z$. Let
+\[
+    e(Z)=P(A=1\mid Z)
+\]
+denote the propensity score. We assign each observation
+the inverse propensity weight
+\[
+    w_i =
+    \frac{A_i}{e(Z_i)}
+    +\frac{1-A_i}{1-e(Z_i)}.
+\]
+
+Under consistency, conditional exchangeability
+$Y(a)\perp A\mid Z$, and positivity
+$0<e(Z)<1$, inverse propensity weighting identifies
+the counterfactual means. In particular,
+\[
+    E\left[\frac{AY}{e(Z)}\right]
+    =E[Y(1)],
+    \qquad
+    E\left[\frac{(1-A)Y}{1-e(Z)}\right]
+    =E[Y(0)].
+\]
+Therefore, in the pseudo-population, the mean outcome
+among individuals with $A=a$ equals $E[Y(a)]$.
+
+Consequently, we may consider the associational model
+\[
+    E^*[Y\mid A]=\theta_0+\theta_1 A,
+\]
+where $E^*$ denotes expectation in the pseudo-population.
+Under the assumptions above, $\theta_1=\beta_1$.
+Thus, a consistent estimator of $\theta_1$ in the
+pseudo-population is also a consistent estimator of
+the ATE in the original population.
+
+\paragraph{Inverse propensity weighted least squares.}
+In practice, we do not need to explicitly generate a
+pseudo-population. Instead, we fit the associational
+model using weighted least squares:
+\[
+    (\hat{\theta}_0,\hat{\theta}_1)
+    =
+    \arg\min_{\theta_0,\theta_1}
+    \sum_{i=1}^n
+    \hat{w}_i
+    (Y_i-\theta_0-\theta_1 A_i)^2,
+\]
+where
+\[
+    \hat{w}_i =
+    \frac{A_i}{\hat{e}(Z_i)}
+    +\frac{1-A_i}{1-\hat{e}(Z_i)}.
+\]
+
+Intuitively, individuals who received a treatment
+that was unlikely given their covariates receive larger
+weights. This balances the covariate distributions
+across treatment groups and allows the weighted
+regression to estimate the marginal treatment effect.
+
+For binary treatment, the resulting estimator has the
+simple form
+\[
+\hat{\theta}_1
+=
+\frac{\sum_{i=1}^n A_i\hat w_iY_i}
+     {\sum_{i=1}^n A_i\hat w_i}
+-
+\frac{\sum_{i=1}^n (1-A_i)\hat w_iY_i}
+     {\sum_{i=1}^n (1-A_i)\hat w_i}.
+\]
+Thus, IPW-WLS estimates the ATE as the difference
+between the two inverse propensity weighted group means.
+
+\paragraph{Estimation procedure.}
+The practical procedure is summarized as follows:
+\begin{enumerate}
+    \item Fit a propensity score model for
+    $e(Z)=P(A=1\mid Z)$, for example, logistic regression.
+    \item Compute the estimated inverse propensity
+    weights $\hat w_i$ for all observations.
+    \item Fit the weighted linear regression of $Y$
+    on an intercept and $A$. The estimated coefficient
+    $\hat{\theta}_1$ is the IPW-WLS estimate of the ATE.
+    \item For inference, apply the nonparametric
+    bootstrap by resampling individuals with replacement.
+    In each bootstrap sample, re-estimate the propensity
+    scores, recompute the weights, and refit the weighted
+    regression. The bootstrap estimates can then be used
+    to construct confidence intervals.
+\end{enumerate}
+
+\paragraph{Comparison with outcome regression.}
+Under a model-based approach, standardization and
+IPW-WLS generally use different modeling assumptions.
+Outcome regression specifies a model for
+$E[Y\mid A,Z]$ and averages the fitted conditional means
+over the covariate distribution. In contrast, IPW-WLS
+specifies a model for the propensity score $P(A=1\mid Z)$
+and uses the resulting weights to estimate a marginal
+structural model.
+
+Hence, standardization relies on correct specification
+of the outcome model, whereas IPW-WLS relies on correct
+specification of the propensity score model, in addition
+to the usual causal identification assumptions.
+
+\paragraph{Stabilized weights.} Oftenly, a stablilized weight is used in order to obtain a more efficient confidence interval. It is given by
+\[
+...
+\]
+
+\paragraph{Inference.} To obtain a 95\% confidence interval. We need to take the IP estimated weights into account. There are three approaches. 
+\begin{enumerate}
+    \item Analytical solution: Not available in standard statistical software. 
+    \item Nonparametric bootstraping.
+    \item Robust variance estimator: more conservative than the first two.
+\end{enumerate}
 
 
 \clearpage
