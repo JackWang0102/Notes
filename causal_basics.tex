@@ -450,222 +450,77 @@ To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the i
 \section{Causal Inference with Models}
 \label{sec:causal-models}
 
-Sections~\ref{sec:identification}--\ref{sec:missing-confounders} distinguish two questions: can the observed data identify the causal effect, and how do we estimate the identified quantity? We now address the second question. The formulas above contain unknown functions, such as the outcome regression and propensity score. Statistical models give us a way to estimate these functions when we cannot simply calculate a mean in every covariate group. This section follows the standardization and IP-weighting discussion in Chapters 12--13 of Hern{\'a}n and Robins~\cite{hernanrobins2020whatif}.
+The previous sections explain how standardization and IPW identify causal effects under consistency, conditional exchangeability, and positivity. We now ask how to estimate those effects from data, following Chapters 12--13 of \cite{hernanrobins2020whatif}. For now, assume that the required confounders $Z$ are observed; the difficulty caused by an unmeasured confounder remains as discussed in Section~\ref{sec:missing-confounders}.
 
-The need for models is easiest to see from the earlier stratification formula. If $Z$ consists of $d$ binary covariates, there are $2^d$ possible covariate groups, and estimating a mean separately in each treatment--covariate cell quickly becomes impractical. Continuous covariates make exact-cell comparisons even harder. Models share information across these groups, at the cost of assumptions about the functions being fitted. They help with estimation; they do not replace the causal assumptions used for identification.
+Directly comparing every covariate group becomes difficult when $Z$ is high-dimensional or continuous. For example, $d$ binary covariates give $2^d$ possible groups. Statistical models let us share information across groups, rather than estimating each group mean separately. We consider model-based standardization and inverse propensity weighted least squares (IPW-WLS).
 
-For this section, return to the benchmark setting where $Z$ is \emph{observed} and is a sufficient adjustment set. Assume consistency, conditional exchangeability given $Z$, and positivity. We observe i.i.d. individuals $O_i=(Z_i,A_i,Y_i)$, initially with binary treatment. Write
+\paragraph{Marginal structural model.}
+Consider the model
 \[
- m(a,z)=E[Y\mid A=a,Z=z],\qquad e(z)=P(A=1\mid Z=z),
- \qquad \tau=\mu(1)-\mu(0).
+ E[Y(a)]=\beta_0+\beta_1a,
 \]
-The outcome model $m$ and treatment model $e$ are often called \emph{nuisance functions}: we need them to estimate the causal effect, but they are not the main quantities we want to report. The i.i.d. assumption describes sampling individuals from a population; it does not cover every randomization design listed in the introduction.
+called a \emph{marginal structural model} (MSM) \cite{robins2000marginal}. For binary treatment, $\beta_0=E[Y(0)]$ and $\beta_1=E[Y(1)]-E[Y(0)]$ is the ATE. ``Marginal'' means that these are population averages, after averaging over the confounders $Z$.
 
-\subsection{Standardization with a fitted outcome model}
-\label{sec:model-standardization}
+The earlier IPW argument shows how to estimate these averages by reweighting the observed data. With $e(Z)=P(A=1\mid Z)$, assign weight
+\[
+ w_i=\frac{A_i}{e(Z_i)}+\frac{1-A_i}{1-e(Z_i)}.
+\]
+Using the true weights, each treatment group in the weighted \emph{pseudo-population} has the target covariate distribution. Under the identification assumptions, its observed outcome mean therefore equals the corresponding causal mean:
+\[
+ E^*[Y\mid A=a]=E[Y(a)],
+\]
+where $E^*$ denotes expectation in the weighted population. Consequently, the associational model $E^*[Y\mid A]=\theta_0+\theta_1 A$ has $\theta_1=\beta_1$. A weighted comparison of observed outcomes can thus estimate the ATE in the original population.
 
-The $g$-formula in \eqref{eq:g-formula} says to predict the outcome under treatment $a$ and then average over the target population's covariates. Fit a regression $m(a,z;\beta)$ to the observed outcomes, obtaining $\hat m(a,z)=m(a,z;\hat\beta)$. The plug-in estimators are
-\begin{equation}
-\label{eq:model-standardization}
- \hat\mu_{\mathrm{std}}(a)=\frac1n\sum_{i=1}^n\hat m(a,Z_i),
+\paragraph{Inverse propensity weighted least squares.}
+We implement this idea without generating new observations. Estimate the propensity score, for example by logistic regression, and fit
+\[
+ (\hat\theta_0,\hat\theta_1)
+ =\arg\min_{\theta_0,\theta_1}
+ \sum_{i=1}^n\hat w_i(Y_i-\theta_0-\theta_1A_i)^2,
  \qquad
- \hat\tau_{\mathrm{std}}=\frac1n\sum_{i=1}^n
- \{\hat m(1,Z_i)-\hat m(0,Z_i)\}.
-\end{equation}
-Operationally, use each person's observed $Z_i$ twice: predict once after setting $A=1$ and once after setting $A=0$. Average the predictions for each treatment level, then subtract. This compares the same mix of people under both interventions. Averaging over the observed $Z_i$ estimates the covariate distribution of the sampled population; a different target population would require its own covariate distribution.
-
-The linear Gaussian calculation in Section~\ref{sec:confounding} is a special case. With $m(a,z;\beta)=\beta_0+\beta_Aa+\beta_Zz$, the standardized ATE is $\hat\beta_A$. But this equality need not hold for a more general regression. For a scalar covariate and a treatment--covariate interaction,
-\[
- m(a,z;\beta)=\beta_0+\beta_Aa+\beta_Zz+\beta_{AZ}az
- \quad\Longrightarrow\quad
- \hat\tau_{\mathrm{std}}=\hat\beta_A+\hat\beta_{AZ}\bar Z,
- \qquad \bar Z=\frac1n\sum_i Z_i.
+ \hat w_i=\frac{A_i}{\hat e(Z_i)}+\frac{1-A_i}{1-\hat e(Z_i)}.
 \]
-Here the treatment effect can differ across people, so we average those differences. With a logistic outcome regression, likewise average predicted probabilities to estimate a risk difference; the treatment coefficient itself is a conditional log odds ratio, not the ATE.
-
-For a correctly specified, fixed-dimensional outcome model, consistent parameter estimation and appropriate integrability conditions give $\hat\mu_{\mathrm{std}}(a)\to\mu(a)$ in probability. A misspecified outcome model can instead produce a biased causal estimate even if exchangeability holds. Good prediction of observed outcomes alone does not establish that the intervention predictions are correct.
-
-\subsection{IP-weighted least squares and a marginal outcome model}
-\label{sec:ip-weighted-ls}
-
-The IPW identity uses the treatment model instead of the conditional outcome model. For example, fit
+People who received a treatment that was unlikely given their covariates receive more weight. For binary treatment, the fitted treatment coefficient is
 \[
- e(z;\gamma)=\operatorname{expit}\{\gamma^\top s(z)\},
- \qquad \operatorname{expit}(u)=\frac{\exp(u)}{1+\exp(u)},
+ \hat\theta_1=
+ \frac{\sum_i A_i\hat w_iY_i}{\sum_i A_i\hat w_i}
+ -\frac{\sum_i(1-A_i)\hat w_iY_i}{\sum_i(1-A_i)\hat w_i}.
 \]
-where $s(z)$ contains an intercept and chosen functions of the covariates. Write $\hat e_i=e(Z_i;\hat\gamma)$ and define each person's inverse probability weight by
-\begin{equation}
-\label{eq:model-ipw-weight}
- \hat w_i=\frac{A_i}{\hat e_i}+\frac{1-A_i}{1-\hat e_i}.
-\end{equation}
-Only the term corresponding to the received treatment contributes. A treated person receives weight $1/\hat e_i$; an untreated person receives weight $1/(1-\hat e_i)$.
+This is the difference between two normalized IPW group means. Unlike the earlier Horvitz--Thompson-type estimator, it divides each weighted outcome total by that group's weighted count rather than by $n$. The two approaches generally differ in finite samples, but both are consistent under the causal assumptions, consistent propensity estimation, and suitable regularity conditions.
 
-To connect this procedure to the earlier IPW identification formula, let $w$ denote the weight in \eqref{eq:model-ipw-weight} with the true $e$ in place of $\hat e$. The weighted \emph{pseudo-population} has expectations $E^*[h(O)]=E[w h(O)]/E[w]$, with $E[w]=2$. Its joint covariate--treatment distribution is
-\[
- dP^*(A=a,Z=z)=\tfrac12\,dF_Z(z),\qquad a=0,1.
-\]
-Thus, both treatment groups have the target covariate distribution. The same identity that justified IPW earlier now gives
-\[
- E^*[Y\mid A=a]
- =\frac{E[I(A=a)wY]}{E[I(A=a)w]}
- =\frac{\mu(a)}{1}=\mu(a).
-\]
-This is the link between the causal and regression statements: a mean outcome comparison in the properly weighted population equals a causal comparison in the original population. No new individuals are generated; a weighted regression implements this comparison using the observed sample.
-
-Now fit a regression of $Y$ on an intercept and $A$ by inverse propensity weighted least squares (IPW-WLS):
-\begin{equation}
-\label{eq:ip-weighted-ls}
- (\hat\alpha_0,\hat\alpha_A)
- =\arg\min_{\alpha_0,\alpha_A}
- \sum_{i=1}^n\hat w_i(Y_i-\alpha_0-\alpha_AA_i)^2.
-\end{equation}
-The corresponding \emph{marginal structural mean model} (MSM) \cite{robins2000marginal} is $E[Y(a)]=\alpha_0+\alpha_Aa$. ``Marginal'' means that it describes the mean after averaging over $Z$, rather than the outcome conditional on $Z$. For binary treatment, an intercept and treatment indicator can represent any pair of treatment-specific means, so this model places no additional restriction on those two means.
-
-The weighted least-squares equations give
-\begin{align}
-\label{eq:hajek-means}
- \hat\mu_{\mathrm{H}}(1)
- &=\frac{\sum_i A_iY_i/\hat e_i}{\sum_i A_i/\hat e_i},
- &\hat\mu_{\mathrm{H}}(0)
- &=\frac{\sum_i(1-A_i)Y_i/(1-\hat e_i)}
-         {\sum_i(1-A_i)/(1-\hat e_i)},\\
- \hat\alpha_0&=\hat\mu_{\mathrm{H}}(0),
- &\hat\alpha_A&=\hat\mu_{\mathrm{H}}(1)-\hat\mu_{\mathrm{H}}(0).\notag
-\end{align}
-These are \emph{normalized IPW}, or H\'ajek, means. They divide each arm's weighted outcome total by that arm's weighted count. The Horvitz--Thompson-type estimator introduced earlier instead divides each weighted outcome total by $n$. The two estimators generally differ in a finite sample, although both are consistent under the identification assumptions, a consistently estimated propensity score, and suitable regularity conditions. Normalized means stay within the observed outcome range of each treatment arm when their denominators are positive; normalization does not generally preserve exact finite-sample unbiasedness.
-
-\paragraph{Comparison with standardization.}
-Both approaches target the same $\tau$ under the same causal assumptions. Standardization models $E[Y\mid A,Z]$ and averages predictions; IPW-WLS models $P(A=1\mid Z)$ and averages reweighted outcomes. They can disagree in a finite sample and can be biased by different model errors. Neither corrects an insufficient adjustment set.
-
-The regression in \eqref{eq:ip-weighted-ls} has no covariates because the \emph{weights} perform the adjustment. This is different from fitting $E[Y\mid A,Z]$ and then standardizing its predictions. In particular, the simple weighted regression above is not automatically doubly robust: its causal interpretation still generally requires a correct treatment model.
-
-\subsection{Stabilized weights: definition and interpretation}
-\label{sec:stabilized-weights}
-
-Recall the density-ratio argument in the earlier IPW section: the factor $P(A=a)/P(A=a\mid Z)$ changes the covariate distribution within treatment group $a$ to the target distribution. Let $p=P(A=1)$ and estimate it by $\hat p=n^{-1}\sum_i A_i$. The estimated \emph{stabilized weights} are
-\begin{equation}
-\label{eq:stabilized-weights}
- \hat w_i^{\mathrm{S}}
- =\frac{A_i\hat p}{\hat e_i}
-  +\frac{(1-A_i)(1-\hat p)}{1-\hat e_i}.
-\end{equation}
-Thus, we multiply every treated person's ordinary IP weight by the same number $\hat p$, and every untreated person's weight by $1-\hat p$.
-
-With the true probabilities, stabilized weighting gives the joint distribution
-\[
- dP^{\mathrm{S}}(A=a,Z=z)=P(A=a)\,dF_Z(z).
-\]
-In this weighted distribution, treatment and measured covariates are independent, the target covariate distribution is retained, and the treatment proportions are unchanged. The mean stabilized weight is $E[w^{\mathrm{S}}]=1$. It need not be exactly one in a finite sample with fitted probabilities. These statements describe the target of weighting, not a guarantee of exact balance in the observed sample.
-
-For the binary-treatment regression in \eqref{eq:ip-weighted-ls}, replacing $\hat w_i$ by $\hat w_i^{\mathrm{S}}$ gives \emph{exactly the same fitted arm means and ATE}, provided both arms have positive weight. The constants cancel within each normalized mean:
-\[
- \frac{\sum_i A_i\hat w_i^{\mathrm{S}}Y_i}{\sum_i A_i\hat w_i^{\mathrm{S}}}
- =\frac{\hat p\sum_i A_iY_i/\hat e_i}{\hat p\sum_i A_i/\hat e_i}
- =\hat\mu_{\mathrm{H}}(1),
-\]
-with the same cancellation in the untreated arm. Stabilization and normalization are therefore different operations, even though using stabilized weights in this saturated binary regression yields the normalized estimator.
-
-\begin{remark}[What stabilization does and does not do]
-Stabilization changes the scale of the weights. In the binary model above, it does not change relative weights within an arm or reduce the sampling variance of the normalized ATE: the estimate is identical in every sample. A very small treatment probability can still give someone a large weight. Stabilization does not repair poor overlap, an incorrect propensity model, or unmeasured confounding.
-
-Also, do not simply replace the weights in the earlier Horvitz--Thompson mean by stabilized weights and keep the denominator $n$. For example,
-$E[Aw^{\mathrm{S}}Y]=p\mu(1)$, not $\mu(1)$. Use the normalized arm means or the appropriate weighted regression.
-\end{remark}
-
-\paragraph{Connection to continuous treatment.}
-For continuous $A$, the analogous stabilized weight is $w^{\mathrm{S}}=f_A(A)/f_{A\mid Z}(A\mid Z)$, using densities rather than point probabilities. With the true weights, the weighted joint density of $(A,Z)$ factors into the marginal density of $A$ and the target distribution of $Z$. Under the causal assumptions and the regularity discussed earlier, the weighted conditional mean at dose $a$ then equals $\mu(a)$ on the supported dose range.
-
-A possible estimator fits a marginal dose-response model $g(a;\alpha)$ by minimizing $\sum_i\hat w_i^{\mathrm{S}}\{Y_i-g(A_i;\alpha)\}^2$ and reports $g(a;\hat\alpha)-g(a';\hat\alpha)$. Unlike the binary model, a linear or polynomial dose-response model imposes restrictions on the response curve. If those restrictions are wrong, the fit is generally only a weighted approximation to the causal curve. Stabilized and unstabilized weights need not give the same fitted approximation in this setting. This approach estimates a response curve across doses; it does not use the fixed-dose indicator estimator ruled out earlier.
-
-\subsection{Inference: standard errors and confidence intervals}
-\label{sec:model-inference}
-
-An estimate changes if we collect a new sample. Inference quantifies this sampling uncertainty. There are several sources: estimating the outcome or treatment model, sampling the covariate distribution over which we standardize, and outcome variation. An uncertainty calculation should reflect the \emph{whole estimation procedure}. Here we focus on smooth, fixed-dimensional models with i.i.d. sampling, adequate overlap, and finite relevant variances. Flexible machine-learning fits require additional justification; the procedures below are not universal guarantees for arbitrary learners.
-
-\subsubsection{A practical approach: bootstrap the full procedure}
-
-For either standardization or IP-weighted regression, an individual-level nonparametric bootstrap proceeds as follows:
+\paragraph{Estimation procedure.}
 \begin{enumerate}
- \item Draw $n$ individuals with replacement from the original sample, keeping each person's $(Z_i,A_i,Y_i)$ together.
- \item Refit the outcome model for standardization, or the propensity model for IPW. Recalculate treatment proportions if using stabilized weights.
- \item Recompute the causal estimate. For standardization, average intervention predictions over the covariates in the bootstrap sample. For IPW, recompute the weights and the normalized arm means or weighted regression.
- \item Repeat for $b=1,\ldots,B$, giving estimates $\hat\tau^{*(1)},\ldots,\hat\tau^{*(B)}$.
+ \item Fit a model for $e(Z)=P(A=1\mid Z)$.
+ \item Calculate the estimated weights $\hat w_i$.
+ \item Regress $Y$ on an intercept and $A$ using these weights. Report $\hat\theta_1$ as the estimated ATE and calculate uncertainty as described below.
 \end{enumerate}
-The bootstrap standard error is
-\begin{equation}
-\label{eq:bootstrap-se}
- \widehat{\operatorname{se}}_{\mathrm{boot}}(\hat\tau)
- =\left[\frac1{B-1}\sum_{b=1}^B
- \{\hat\tau^{*(b)}-\bar\tau^*\}^2\right]^{1/2},
- \qquad \bar\tau^*=\frac1B\sum_{b=1}^B\hat\tau^{*(b)}.
-\end{equation}
-For a large-sample normal approximation, a $95\%$ Wald interval is
-\begin{equation}
-\label{eq:causal-wald-ci}
- \hat\tau\ \pm\ 1.96\,\widehat{\operatorname{se}}(\hat\tau).
-\end{equation}
-A percentile bootstrap interval instead uses the empirical $2.5$th and $97.5$th percentiles of the bootstrap estimates. Bootstrap validity requires regularity conditions; frequent model-fitting failures or extremely unstable estimates should prompt a check of the data support and model fit rather than silently discarding failed resamples.
 
-Refitting matters. Resampling only the final predictions or weighted outcomes while keeping the fitted models fixed generally omits uncertainty from their estimation. For clustered data, resample independent clusters and use a method appropriate to the sampling design; a row-by-row bootstrap is not appropriate when rows within a cluster are dependent.
+\paragraph{Comparison with outcome regression.}
+Model-based standardization fits $E[Y\mid A,Z]$ and averages intervention predictions over the observed covariates, as in the Gaussian example in Section~\ref{sec:confounding}. IPW-WLS instead fits $P(A=1\mid Z)$ and uses weights to compare outcomes under a common covariate distribution. Standardization generally relies on a correct outcome model; IPW-WLS generally relies on a correct propensity model. Both also need the same causal identification assumptions. Neither method automatically removes unmeasured confounding.
 
-\subsubsection{An analytic alternative: joint estimating equations}
-
-For regular parametric models, a sandwich variance can account for fitting the propensity score and estimating the effect together. To make this concrete, let $s_\gamma(O_i;\gamma)$ be the score used to fit the propensity model; for logistic maximum likelihood it is $s(Z_i)\{A_i-e(Z_i;\gamma)\}$. Set $\theta=(\gamma^\top,\mu_1,\mu_0)^\top$, where $\mu_a=\mu(a)$. The normalized IPW estimates solve
-\begin{equation}
-\label{eq:joint-ipw-scores}
- \frac1n\sum_{i=1}^n U_i(\hat\theta)=0,
- \qquad
- U_i(\theta)=
- \begin{pmatrix}
- s_\gamma(O_i;\gamma)\\
- A_i\{Y_i-\mu_1\}/e(Z_i;\gamma)\\
- (1-A_i)\{Y_i-\mu_0\}/\{1-e(Z_i;\gamma)\}
- \end{pmatrix}.
-\end{equation}
-Define the derivative matrix and the empirical score second moment by
+\paragraph{Stabilized weights.}
+Let $p=P(A=1)$ and estimate it by $\hat p=n^{-1}\sum_i A_i$. The stabilized weight is
 \[
- \hat J=\frac1n\sum_i
- \left.\frac{\partial U_i(\theta)}{\partial\theta^\top}\right|_{\theta=\hat\theta},
- \qquad
- \hat K=\frac1n\sum_i U_i(\hat\theta)U_i(\hat\theta)^\top.
+ \hat w_i^{\mathrm S}
+ =\frac{A_i\hat p}{\hat e(Z_i)}
+ +\frac{(1-A_i)(1-\hat p)}{1-\hat e(Z_i)}.
 \]
-Under the usual smoothness, moment, and nonsingularity conditions, the sandwich covariance estimate is
-\begin{equation}
-\label{eq:joint-sandwich}
- \widehat{\operatorname{Var}}(\hat\theta)
- =\frac1n\hat J^{-1}\hat K\hat J^{-\top},
- \qquad
- \widehat{\operatorname{se}}(\hat\tau)
- =\sqrt{c^\top\widehat{\operatorname{Var}}(\hat\theta)c},
-\end{equation}
-where $\hat J^{-\top}=(\hat J^{-1})^\top$ and $c$ has zeros for the propensity parameters, followed by $1$ and $-1$. The contrast therefore targets $\hat\tau=\hat\mu_1-\hat\mu_0$. The same variance applies to the binary stabilized regression above because its estimator is exactly the same. For standardization, an analogous construction stacks the outcome-model scores with $m(a,Z_i;\beta)-\mu_a$ for $a=0,1$.
+This is the factor $P(A=a)/P(A=a\mid Z)$ from the earlier IPW derivation, evaluated at each person's received treatment. It rescales the weights so that the mean weight is one at the population level and the weighted population retains the original treatment proportions.
 
-In plain language, stacking keeps track of how fitting one part of the procedure affects the next part. This is an analytic way to account for estimated weights; it can be implemented through estimating-equation methods, though a generic weighted regression command may not do it automatically.
+We may use $\hat w_i^{\mathrm S}$ in the weighted regression above. For binary treatment with only an intercept and $A$, stabilization gives \emph{exactly the same fitted group means and ATE}: within each group, the numerator factor cancels between the weighted outcome total and weighted count. Thus, it does not by itself produce a narrower confidence interval for this estimator. It also does not fix extreme propensity scores or unmeasured confounding.
 
-\subsubsection{What an ordinary robust regression variance accounts for}
-
-A heteroskedasticity-robust variance from the final weighted regression allows outcome variability to differ across individuals, but usually treats the supplied weights as fixed. To see the distinction, define
+\paragraph{Inference.}
+For independent individuals sampled from a population, a large-sample $95\%$ confidence interval is
 \[
- \hat\phi_i=
- \frac{A_i}{\hat e_i}\{Y_i-\hat\mu_{\mathrm H}(1)\}
- -\frac{1-A_i}{1-\hat e_i}\{Y_i-\hat\mu_{\mathrm H}(0)\}.
+ \hat\theta_1\ \pm\ 1.96\,\widehat{\operatorname{se}}(\hat\theta_1).
 \]
-If the true assignment probabilities are known and used, these are plug-in versions of the normalized IPW estimator's influence values: they describe how individual observations contribute to sampling fluctuation. With i.i.d. sampling and finite variance, a corresponding large-sample standard error is
-\[
- \widehat{\operatorname{se}}_{\mathrm{fixed}}(\hat\tau)
- =\left\{\frac1{n(n-1)}\sum_i(\hat\phi_i-\bar\phi)^2\right\}^{1/2},
- \qquad \bar\phi=\frac1n\sum_i\hat\phi_i.
-\]
-If the propensities are estimated, this calculation generally omits a first-order contribution from estimating them. In the usual correctly specified logistic maximum-likelihood IPW analysis for the ATE, the fixed-weight robust variance is asymptotically conservative; this does not establish a universal ordering of confidence-interval widths across models, estimators, or finite samples. The joint sandwich above or a full-procedure bootstrap accounts for propensity estimation directly.
-
-Ordinary model-based weighted least-squares standard errors are different again: they usually treat the weights as inverse outcome variances, which is not their role here. Neither ordinary nor robust regression standard errors protect against unmeasured confounding or bias in the point estimate.
-
-\paragraph{Using the standard error.}
-Use a standard error appropriate to the entire estimator in \eqref{eq:causal-wald-ci}. For a two-sided test of $H_0:\tau=\tau_0$, the large-sample statistic is $T=(\hat\tau-\tau_0)/\widehat{\operatorname{se}}(\hat\tau)$, with approximate $p$-value $2\{1-\Phi(|T|)\}$, where $\Phi$ is the standard normal distribution function. A test of $\tau=0$ concerns the average effect, not the sharp null of no effect for every individual discussed earlier. A $95\%$ confidence interval describes a procedure that covers the fixed target in approximately $95\%$ of repeated samples under its assumptions; it is not a $95\%$ probability statement about the fixed target after seeing the data.
-
-\begin{remark}[Returning to the research problem]
-A confidence interval describes sampling uncertainty under the model and identification assumptions. It does not measure the bias from an unobserved confounder. If only $W$ is observed and exchangeability given $W$ fails, the models above can estimate the observational quantity in \eqref{eq:observed-adjustment-functional} very precisely while still missing the causal effect. A proxy or latent-confounder approach must first establish identification under its additional assumptions, and then account for estimation of those extra model components when calculating uncertainty.
-\end{remark}
+The standard error should account for estimating the propensity scores, as well as fitting the weighted regression. Three approaches are:
+\begin{enumerate}
+ \item \textbf{Analytic variance.} Derive a variance that accounts for both steps, for example with joint estimating equations and a sandwich estimator. A generic weighted regression command may not include this adjustment automatically.
+ \item \textbf{Nonparametric bootstrap.} Resample individuals with replacement. In each resample, refit the propensity model, recalculate the weights, and refit the weighted regression. The standard deviation of the resulting ATE estimates estimates the standard error. Alternatively, use their $2.5$th and $97.5$th percentiles as the interval endpoints.
+ \item \textbf{Robust regression variance.} A robust standard error from the final weighted regression typically treats the weights as fixed. It is often conservative in the usual correctly specified logistic propensity-model setting, but this is not guaranteed in every setting. It is different from a joint variance calculation that explicitly accounts for estimating the weights.
+\end{enumerate}
+The bootstrap is a practical option for regular parametric fits; it should repeat the \emph{whole procedure}, rather than hold the estimated weights fixed. These intervals describe sampling uncertainty under the assumptions. They do not account for bias from a misspecified model or an unmeasured confounder.
 
 \clearpage
 \bibliography{ref}
