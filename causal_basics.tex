@@ -1,18 +1,5 @@
 \documentclass[11pt,twoside]{article}
 \input{notes-preamble}
-\usepackage[normalem]{ulem}
-% Review mode: deleted text is struck out; replacements/additions are blue.
-% Set \showrevisionsfalse for a clean reading copy.
-\newif\ifshowrevisions
-\showrevisionsfalse
-\newcommand{\revision}[2]{%
-  \ifshowrevisions
-    \if\relax\detokenize{#1}\relax\else\sout{#1}\space\fi
-    {\color{blue}#2}%
-  \else
-    #2%
-  \fi
-}
 \clubpenalty=10000
 \widowpenalty=10000
 \emergencystretch=2em
@@ -29,35 +16,35 @@
 
 \begin{document}
 \maketitle
-\textbf{Abstract.} \revision{This note discusses some basic concepts used is my causal inference project. Specifically, it does not discuss topics on causal graphs such as structural learning. We focus on inference given a DAG, with a focus on missing confounder problems. Several methodologies tackling this problem are briefly introduced.}{This note reviews potential outcomes, causal estimands, and identification by standardization and inverse propensity weighting. It distinguishes causal effects from observed associations and explains the assumptions needed to connect them. The research focus is inference with a given causal directed acyclic graph (DAG), especially when confounders are unmeasured and proxies are available; causal discovery is outside the scope of this note.}
+\textbf{Abstract.} This note reviews potential outcomes, causal estimands, and identification by standardization and inverse propensity weighting. It distinguishes causal effects from observed associations and explains the assumptions needed to connect them. The research focus is inference with a given causal directed acyclic graph (DAG), especially when confounders are unmeasured and proxies are available; causal discovery is outside the scope of this note.
 
-\revision{}{{\small These additions follow DR. Heejong Bong's STAT 556 notes \emph{Chapters 1 and 3}. The SCM and proxy examples extend that foundation to the research setting.}}
+{\small These additions follow DR. Heejong Bong's STAT 556 notes \emph{Chapters 1 and 3}. The SCM and proxy examples extend that foundation to the research setting.}
 
 \tableofcontents
 \bigskip
 \section{Introduction}
-\revision{Identifying causality has been of interest in scientific field for decades. However, randomized trials, which is the gold standard in causal inference, might not be used due to various reasons such as ethical issues, high costs, etc. Observational data, on the other hand, is easier to obtain but lack some desired control in order to make causal statements. For example, the existence of unmeasured confounders relates treatments and outcomes, violating the exchangeability condition. Thus, making causal claims from observational data is at the heart of causal inference.}{Causal inference seeks to define, identify, and estimate the effect of an intervention on an outcome. Randomized trials provide a benchmark because treatment assignment can ensure exchangeability, but ethical, financial, or practical constraints may prevent their use. Observational studies are often more feasible, yet treatment assignment may depend on factors that also affect potential outcomes. Causal claims from such data therefore require assumptions supported by subject-matter knowledge. Potential outcomes, causal diagrams, and structural causal models provide complementary ways to express these assumptions.}
+Causal inference seeks to define, identify, and estimate the effect of an intervention on an outcome. Randomized trials provide a benchmark because treatment assignment can ensure exchangeability, but ethical, financial, or practical constraints may prevent their use. Observational studies are often more feasible, yet treatment assignment may depend on factors that also affect potential outcomes. Causal claims from such data therefore require assumptions supported by subject-matter knowledge. Potential outcomes, causal diagrams, and structural causal models provide complementary ways to express these assumptions.
 
-\revision{Here are three types of randomized designs}{Three common randomized designs are:}
+Three common randomized designs are:
 \begin{itemize}
-    \item Completely randomized design: \revision{$n_1$ out of $n$ objects randomly assigned to the treatment.}{exactly $n_1$ of $n$ individuals are selected uniformly at random to receive treatment.}
-    \item Bernoulli design: \revision{for each individual, assignment treatment according a Bernoulli($p$) random variable.}{individuals receive treatment independently with probability $p\in(0,1)$; the treated sample size is random.}
-    \item Matched pair design: \revision{match individuals into pairs and randomly assign treatment among them.}{form pairs and randomly assign one individual in each pair to treatment and the other to control.}
+    \item Completely randomized design: exactly $n_1$ of $n$ individuals are selected uniformly at random to receive treatment.
+    \item Bernoulli design: individuals receive treatment independently with probability $p\in(0,1)$; the treated sample size is random.
+    \item Matched pair design: form pairs and randomly assign one individual in each pair to treatment and the other to control.
 \end{itemize}
 
 
-\revision{}{Under marginal exchangeability, $Y(a)\indep A$, consistency and $P(A=a)>0$ imply
+Under marginal exchangeability, $Y(a)\indep A$, consistency and $P(A=a)>0$ imply
 \[
  E[Y\mid A=a]=E[Y(a)\mid A=a]=E[Y(a)].
 \]
 This is an equality of population quantities. Randomization does not guarantee exact covariate balance or equality of sample means in a realized experiment. Assignment indicators can also be dependent across individuals under completely randomized and matched pair designs.
 
-In a \emph{conditionally randomized} design, treatment probabilities may vary with a baseline covariate $Z$. Randomization within strata gives $Y(a)\indep A\mid Z$, but marginal exchangeability need not hold. This motivates standardization and weighting across strata. Exchangeability concerns $A$ and the \emph{potential} outcomes; it does not require $A\indep Y$.}
+In a \emph{conditionally randomized} design, treatment probabilities may vary with a baseline covariate $Z$. Randomization within strata gives $Y(a)\indep A\mid Z$, but marginal exchangeability need not hold. This motivates standardization and weighting across strata. Exchangeability concerns $A$ and the \emph{potential} outcomes; it does not require $A\indep Y$.
 
 \section{Potential Outcomes and Causal Estimands}
 \label{sec:potential-outcomes}
 
-\revision{Let $Y_i(a)$ be the \emph{potential outcome} of individual $i$ under treatment level $a$.}{Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates. Write $Y_i(a)$ for individual $i$'s potential outcome under a specified intervention setting treatment to $a$. Expectations below refer to the target population \cite{Rubin1974EstimatingCE}.}
+Let $A$ denote treatment, $Y$ the observed outcome, and $Z$ baseline covariates. Write $Y_i(a)$ for individual $i$'s potential outcome under a specified intervention setting treatment to $a$. Expectations below refer to the target population \cite{Rubin1974EstimatingCE}.
 \begin{itemize}
     \item Binary treatment: The average treatment effect (ATE) is
     \begin{equation}
@@ -72,13 +59,13 @@ In a \emph{conditionally randomized} design, treatment probabilities may vary wi
 \end{itemize}
 
 \begin{remark}[Comparing two outcomes for the same person]
-\revision{Individual treatment effect (ITE) is defined as $Y_i(a)-Y_i(a')$.}{The individual treatment effect (ITE), $Y_i(a)-Y_i(a')$, compares what would happen to the \emph{same person} under two treatment levels. For binary treatment, this is $Y_i(1)-Y_i(0)$. We usually cannot observe both outcomes for one person, so we cannot directly calculate that person's treatment effect from the observed data.}
+The individual treatment effect (ITE), $Y_i(a)-Y_i(a')$, compares what would happen to the \emph{same person} under two treatment levels. For binary treatment, this is $Y_i(1)-Y_i(0)$. We usually cannot observe both outcomes for one person, so we cannot directly calculate that person's treatment effect from the observed data.
 \end{remark}
 
 A fundamental challenge in causal inference is the counterfactual (the \emph{what if}, missing data problem). For each individual, we only observe the potential outcome corresponding to the intervention actually received; the alternative intervention remains unobserved.
 
 
-\revision{}{\subsection{Effect scales, causal nulls, and identification}
+\subsection{Effect scales, causal nulls, and identification}
 For a binary outcome, let $p_a=P\{Y(a)=1\}$. Common causal effect measures are
 \[
  \mathrm{RD}=p_1-p_0,\qquad
@@ -93,11 +80,11 @@ The \emph{sharp causal null}, $Y_i(1)=Y_i(0)$ for every individual, implies a ze
 A causal estimand is \emph{identified} under a model if every full-data distribution compatible with the observed-data distribution and the model's assumptions gives the same value of that estimand. \emph{Estimation} uses a finite sample to approximate the identified functional. More data alone cannot resolve nonidentification under the assumed model.
 \end{definition}
 
-}
+
 
 \subsection{Factual and Potential Outcomes in an SCM}
 
-\revision{Suppose the factual outcome is generated by the structural equation}{Suppose $Z$ is a baseline variable unaffected by treatment, and the factual outcome is generated by the structural equation}
+Suppose $Z$ is a baseline variable unaffected by treatment, and the factual outcome is generated by the structural equation
 \begin{equation}
 \label{eq:factual-outcome}
     y_i = \mu_3(a_i,z_i,\theta_3) + \sigma_3 e_{yi}.
@@ -118,7 +105,7 @@ The same individual-level exogenous error is held fixed under the
 which satisfies \emph{consistency}.
 
 \begin{remark}[Factual versus causal quantities]
-\revision{$Y$ is the factual outcome, an observational (non-causal) quantity. $Y(a)$ is a potential outcome, a causal quantity. In $Y(a)$, the treatment level $a$ is fixed.}{$Y$ records what actually happened under the treatment a person received. $Y(a)$ asks what would happen if we set that person's treatment to $a$. For example, $E[Y\mid A=1]$ is the average outcome among people who actually received treatment, while $E[Y(1)]$ is the average outcome if everyone in the target population received treatment. The first describes an observed group; the second describes an intervention. They need not be equal because the treated group may differ from the rest of the population.}
+$Y$ records what actually happened under the treatment a person received. $Y(a)$ asks what would happen if we set that person's treatment to $a$. For example, $E[Y\mid A=1]$ is the average outcome among people who actually received treatment, while $E[Y(1)]$ is the average outcome if everyone in the target population received treatment. The first describes an observed group; the second describes an intervention. They need not be equal because the treated group may differ from the rest of the population.
 \end{remark}
 
 The central question is:
@@ -131,8 +118,8 @@ That is, how can we make causal claims from observational data?
 \section{Linking Causal Estimands to Observational Data: Adjustment Formula and Inverse Propensity Weighting}
 \label{sec:identification}
 
-\revision{To estimate causal estimand from observational data, the so-called $g-$formula or adjustment formula is used. Assume the following conditions.}{To identify causal means from observational data, assume consistency, conditional exchangeability, and positivity. Under these conditions, the adjustment formula and IPW express the same causal estimand as functionals of the observed-data distribution. Estimation is a separate step.}
-\revision{}{For the identification assumptions and the standardization and IPW arguments below, see Chapters 1--3 of Hern{\'a}n and Robins~\cite{hernanrobins2020whatif}.}
+To identify causal means from observational data, assume consistency, conditional exchangeability, and positivity. Under these conditions, the adjustment formula and IPW express the same causal estimand as functionals of the observed-data distribution. Estimation is a separate step.
+For the identification assumptions and the standardization and IPW arguments below, see Chapters 1--3 of Hern{\'a}n and Robins~\cite{hernanrobins2020whatif}.
 
 \begin{assumption}[Consistency]
 The observed outcome agrees with the potential outcome at the
@@ -145,7 +132,7 @@ For each treatment level $a$ of interest,
 \label{eq:ignorability}
     Y(a) \mathrel{\indep} A \mid Z.
 \end{equation}
-\revision{Note that this is weak ignorability. Strong ignorability says $ \{Y(a), a \in \mathcal{A}\} \mathrel{\indep} A \mid Z.$}{This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.}
+This is a treatment-specific (weak) exchangeability condition \cite{Hirano2004}. Joint exchangeability requires $\{Y(a):a\in\mathcal A\}\indep A\mid Z$. In the binary-treatment formulation of Rosenbaum and Rubin, \emph{strong ignorability} combines joint exchangeability with positivity \cite{rosenbaum1983central}. Treatment-specific exchangeability suffices to identify each marginal mean $E[Y(a)]$.
 \end{assumption}
 
 \begin{assumption}[Positivity or overlap]
@@ -163,28 +150,28 @@ for the treatment levels of interest and almost every $z$ in the
  target population.
 \end{assumption}
 
-\revision{}{\begin{remark}[Continuous treatment]
+\begin{remark}[Continuous treatment]
 For a continuous treatment, such as a dose that can take any value in an interval, the probability of receiving one \emph{exact} dose is zero: $P(A=a\mid Z=z)=0$. This is normal and does not by itself mean that overlap fails. Instead, we ask whether people with covariates $z$ can receive doses near $a$; the density condition $f_{A\mid Z}(a\mid z)>0$ expresses this local availability. There is also a mathematical detail: observed data do not determine the mean response at every single exact dose without further assumptions. We typically assume that nearby doses have similar mean outcomes, for example by assuming continuity of the conditional mean in $a$.
-\end{remark}}
+\end{remark}
 
-Under these assumptions, \revision{there are two methods to identify average effects:}{two equivalent identification strategies for binary-treatment average effects are:}
+Under these assumptions, two equivalent identification strategies for binary-treatment average effects are:
 \begin{itemize}
-    \item \revision{$g-$formula/ standardization: using outcome regression $E[Y|Z,A]$.}{$g$-formula (standardization): average the outcome regression $E[Y\mid Z,A]$ over the target covariate distribution.}
-    \item \revision{Inverse propensity weighting: using propensity score, $P(A=1|Z)$.}{Inverse propensity weighting: reweight outcomes using the propensity score $P(A=1\mid Z)$.}
+    \item $g$-formula (standardization): average the outcome regression $E[Y\mid Z,A]$ over the target covariate distribution.
+    \item Inverse propensity weighting: reweight outcomes using the propensity score $P(A=1\mid Z)$.
 \end{itemize}
 
 \begin{remark}
-    \revision{Crucially, observational data often fails to satisfy conditional ignorability due to unmeasured confounders. Therefore, in practice, practitioners have to use domain knowledge to include as many as confounders. However, including too many variables is problematic too.}{The goal of adjustment is to compare treated and untreated people who are similar in the baseline factors needed to remove confounding. If an important factor is unmeasured, differences in outcomes may still reflect that factor rather than treatment. This is why conditional exchangeability is also called ``no unmeasured confounding.'' The observed data alone generally cannot tell us whether this assumption is true.
+    The goal of adjustment is to compare treated and untreated people who are similar in the baseline factors needed to remove confounding. If an important factor is unmeasured, differences in outcomes may still reflect that factor rather than treatment. This is why conditional exchangeability is also called ``no unmeasured confounding.'' The observed data alone generally cannot tell us whether this assumption is true.
 
-Including more variables is not automatically better. For example, adjusting for a \emph{collider}, a variable caused by two other variables, can create a misleading association by comparing people with the same value of that variable. Adjusting for a \emph{mediator}, a variable through which treatment affects the outcome, can remove part of the effect we want to study. We therefore use knowledge of the problem and the assumed causal graph to decide which variables to adjust for.}
+Including more variables is not automatically better. For example, adjusting for a \emph{collider}, a variable caused by two other variables, can create a misleading association by comparing people with the same value of that variable. Adjusting for a \emph{mediator}, a variable through which treatment affects the outcome, can remove part of the effect we want to study. We therefore use knowledge of the problem and the assumed causal graph to decide which variables to adjust for.
 \end{remark}
 
-\revision{}{\subsection{Interpreting the identification assumptions}
+\subsection{Interpreting the identification assumptions}
 \begin{itemize}
  \item \textbf{Consistency and treatment versions.} The intervention must be sufficiently well defined and match the estimand. If $A=1$ combines several drug doses with different effects, $Y(1)$ is ambiguous unless the intervention specifies a dose or a policy for choosing it. Assignment to treatment and treatment actually received also define different interventions.
  \item \textbf{SUTVA and interference.} The usual SUTVA formulation combines no relevant hidden treatment versions with no interference. Without no interference, potential outcomes may depend on the entire assignment vector: $Y_i(\mathbf a)$. The notation $Y_i(a_i)$ assumes that changing other individuals' assignments does not change individual $i$'s outcome.
  \item \textbf{Positivity.} Both treatment levels must be possible in every covariate stratum needed for exchangeability and represented in the target population. Deterministic assignment violates population positivity. Very small probabilities create practical overlap problems and unstable weights. An empty cell in a finite sample can signal poor overlap, but does not by itself prove a population probability is zero.
-\end{itemize}}
+\end{itemize}
 
 \subsection{The \texorpdfstring{$g$}{g}-formula and standardization}
 Under these assumptions,
@@ -196,8 +183,7 @@ Under these assumptions,
     &= E_Z\!\left[E\big[Y\mid Z,A=a\big]\right] \notag\\
     &= \int \underbrace{E\big[Y\mid Z=z,A=a\big]}_{\text{observational}}\,dF_Z(z).
 \end{align}
-\revision{The first equality uses iterated expectation, the second uses
- conditional ignorability, and the third uses consistency.}{The first equality uses iterated expectation, the second conditional exchangeability, and the third consistency. Positivity ensures that the required conditional means are supported by observed treatment groups throughout the target covariate distribution.}
+The first equality uses iterated expectation, the second conditional exchangeability, and the third consistency. Positivity ensures that the required conditional means are supported by observed treatment groups throughout the target covariate distribution.
 The conditional mean $E[Y\mid Z=z,A=a]$ is an observational quantity.
 
 $Z$ is the \emph{adjustment set}. The resulting expression,
@@ -208,25 +194,25 @@ $Z$ is the \emph{adjustment set}. The resulting expression,
 is called the \emph{adjustment formula} or \emph{$g$-formula}.
 
 \begin{remark}[Scope of the research]
-\revision{In our research, we do not address causal discovery or adjustment-set selection. The causal directed acyclic graph (DAG) is already given. Causal graphs can be used to find adjustment sets, for example through the \emph{back-door criterion.}}{We start with a given causal graph: we assume that the directions of the relevant causal relationships have already been specified. We also take the required adjustment variables as given. Our research asks how to learn the treatment effect when some of those variables are unmeasured. Choosing a graph or an adjustment set is a separate task. One graphical tool for choosing an adjustment set is the \emph{back-door criterion}, which checks whether adjustment blocks paths that create confounding without blocking the causal effect of interest \cite{Pearl2009}.}
+We start with a given causal graph: we assume that the directions of the relevant causal relationships have already been specified. We also take the required adjustment variables as given. Our research asks how to learn the treatment effect when some of those variables are unmeasured. Choosing a graph or an adjustment set is a separate task. One graphical tool for choosing an adjustment set is the \emph{back-door criterion}, which checks whether adjustment blocks paths that create confounding without blocking the causal effect of interest \cite{Pearl2009}.
 \end{remark}
 
 \subsection{Inverse propensity weighting}
-\revision{The motivation of propensity score is to study causality using observational data, i.e., identify causal effect. The basic idea behind IPW is to link association to causality through reweighting outcomes. We first consider a discrete confounder example in which $Z$ is discrete.}{IPW recovers the target covariate distribution by reweighting observed outcomes. For a discrete treatment level $a$ and discrete baseline covariates $Z$, compare the standardized causal mean with the observed mean in treatment group $a$.}
+IPW recovers the target covariate distribution by reweighting observed outcomes. For a discrete treatment level $a$ and discrete baseline covariates $Z$, compare the standardized causal mean with the observed mean in treatment group $a$.
 \[
 E[Y(a)] = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}
 \]
-\revision{while association quantity is, by iterated expectation}{The corresponding associational quantity is, by iterated expectation,}
+The corresponding associational quantity is, by iterated expectation,
 \[
 E[Y\mid A=a] = E\!\left[E[Y\mid A=a,Z]\mid A=a\right] = \sum_z E[Y\mid A=a,Z=z]P(Z=z\mid A=a).
 \]
-\revision{}{The outer conditioning in this decomposition is \revision{$A=1$}{$A=a$}, so the identity applies to either treatment level.}
+The outer conditioning in this decomposition is $A=a$, so the identity applies to either treatment level.
 
-\revision{So the question becomes can we find a $f(a,z)$ such that}{Can we find a weight $f(a,z)$ such that}
+Can we find a weight $f(a,z)$ such that
 \[
 \sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z|A=a)}\textcolor{red}{f(a,z)} = \underbrace{\sum_z E[Y|A=a,Z=z]\textcolor{blue}{P(Z=z)}}_{g-\text{formula}}.
 \]
-\revision{Thus taking}{By Bayes' rule, choosing}
+By Bayes' rule, choosing
 \[
 \boxed{
 f(a,z) = \frac{P(Z=z)}{P(Z=z|A=a)} = \frac{P(A=a)}{P(A=a|Z=z)}}
@@ -235,25 +221,25 @@ gives the desired result. It can be shown that, under the above assumptions
 \[
 E[Y(a)] = E\left[Y \frac{P(A=a)}{P(A=a|Z)}|A=a\right] = E\left[Y \frac{I(A=a)}{P(A=a|Z)}\right],
 \]
-\revision{which consists only observed data.}{which depends only on the observed-data distribution. These indicator-weight identities apply to discrete treatments with positive conditional treatment probabilities.}
+which depends only on the observed-data distribution. These indicator-weight identities apply to discrete treatments with positive conditional treatment probabilities.
 \begin{remark}
-    \revision{This analysis suggests that the imbalance problem $P(Z=z) \neq P(Z=z|A=a)$ is the main cause for this fact, i.e., covariate (confounder) distribution in different treatment groups is not the same.}{The treated and untreated groups may contain different kinds of people. For example, one group may contain a larger proportion of people with a particular baseline characteristic. This difference is called \emph{covariate imbalance}. If that characteristic also affects potential outcomes, a crude comparison may mix its influence with the treatment effect.
+    The treated and untreated groups may contain different kinds of people. For example, one group may contain a larger proportion of people with a particular baseline characteristic. This difference is called \emph{covariate imbalance}. If that characteristic also affects potential outcomes, a crude comparison may mix its influence with the treatment effect.
 
-Standardization averages both groups' predicted outcomes over the same target mix of covariates. IPW uses weights to make each treatment group represent that target mix. Both recover causal means under the stated assumptions. A difference in covariates does not necessarily create bias if it is unrelated to potential outcomes. Also, making the groups look similar in measured variables does not guarantee that they are similar in unmeasured confounders.}
+Standardization averages both groups' predicted outcomes over the same target mix of covariates. IPW uses weights to make each treatment group represent that target mix. Both recover causal means under the stated assumptions. A difference in covariates does not necessarily create bias if it is unrelated to potential outcomes. Also, making the groups look similar in measured variables does not guarantee that they are similar in unmeasured confounders.
 \end{remark}
 
 
-\revision{Let's consider a binary treatment first.}{Now specialize to binary treatment.}
+Now specialize to binary treatment.
 \begin{definition}[Propensity Score]
     The propensity score \cite{rosenbaum1983central} is defined as
     \[
     e(z) = P(A=1|Z=z),
     \]
-    \revision{which can be estimated by logistic regression.}{which may be estimated by logistic regression or another suitable probability model.}
+    which may be estimated by logistic regression or another suitable probability model.
 \end{definition}
 
-\revision{}{The propensity score is a \emph{balancing score}: $A\indep Z\mid e(Z)$. Under conditional exchangeability given $Z$, exchangeability also holds given the true propensity score. This is a population property; fitted scores do not automatically provide exact sample balance or a correct treatment model.
-}
+The propensity score is a \emph{balancing score}: $A\indep Z\mid e(Z)$. Under conditional exchangeability given $Z$, exchangeability also holds given the true propensity score. This is a population property; fitted scores do not automatically provide exact sample balance or a correct treatment model.
+
 
 \emph{Inverse Propensity Weighting (IPW)} estimates the ATE using
 \[
@@ -267,7 +253,7 @@ Standardization averages both groups' predicted outcomes over the same target mi
 \frac{(1-A_i)Y_i}{1-\widehat e(Z_i)}
 \right],}
 \]
-\revision{This is called Horvitz–Thompson estimator. To see why we use this estimator, we compute, assuming consistency, conditional ignorability, and positivity}{This is a Horvitz--Thompson-type estimator \cite{Horvitz01121952}. With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions. To verify the population identity, assume consistency, conditional exchangeability, positivity, and integrable potential outcomes:}
+This is a Horvitz--Thompson-type estimator \cite{Horvitz01121952}. With known true assignment probabilities and a suitable sampling or randomization framework, the corresponding weighted mean difference is unbiased. Replacing $e$ by an estimated score does not generally preserve exact finite-sample unbiasedness; consistency requires appropriate estimation conditions. To verify the population identity, assume consistency, conditional exchangeability, positivity, and integrable potential outcomes:
 \begin{align*}
     E\left[\frac{AY}{ e(Z)}\right] &= E_Z\left\{E\left[\frac{AY}{e(Z)}\big|Z\right]\right\} \\
     &= E_Z\left\{E\left[\frac{AY(1)}{e(Z)}\big|Z\right]\right\} \\
@@ -276,13 +262,13 @@ Standardization averages both groups' predicted outcomes over the same target mi
 \end{align*}
 Similarly, we can show that $E\left[\frac{(1-A)Y}{1-e(Z)}\right]=E[Y(0)]$.
 
-\revision{}{\begin{remark}[Weighting and continuous doses]
+\begin{remark}[Weighting and continuous doses]
 IPW gives more weight to people who received a treatment that was unlikely given their covariates. If that probability is very small, one person can receive a huge weight and have a large influence on the estimate. Check whether both treatments are reasonably represented across the relevant covariate groups (\emph{overlap}) and whether weighting makes the measured covariates more similar across treatment groups (\emph{balance}). Removing observations or capping large weights can help with instability, but can also introduce bias or change which population the result describes.
 
 The displayed IPW estimator is for binary treatment. With a continuous dose, almost surely no sampled person receives a prespecified exact dose $a$, so $I(A=a)=0$ and that formula cannot estimate the mean outcome at $a$. We instead need a method that learns across doses, such as an outcome regression or a method that combines information from nearby doses using conditional treatment densities.
 \end{remark}
 
-}
+
 
 \section{Confounding: Correlation versus Causation}
 \label{sec:confounding}
@@ -333,7 +319,7 @@ Here $\var(A)=2$ and $\cov(A,Z)=1$. Consequently,
     \qquad\text{versus}\qquad
     \underbrace{E[Y(a)]=\tau a}_{\text{causal mean}}.
 \end{equation}
-\revision{Therefore, we need the $g$-formula and adjustment for $Z$. To see this, consider model \eqref{eq:observational-vs-causal} where $Z$ is assumed observable here; then regressing $Y$ on \emph{both} $A$ and $Z$ gives an estimate of $E[Y|Z=z,A=a]$ in $g-$formula \eqref{eq:g-formula}, denoted as $\hat{m}(a, Z_i)=\hat{\tau}a + \hat{\beta}Z_i$. The estimated dose-response function becomes}{If $Z$ is observed, adjustment removes this confounding bias under model \eqref{eq:gaussian-model}. Regressing $Y$ on both $A$ and $Z$ estimates the conditional mean in \eqref{eq:g-formula}. Allowing an intercept in the fitted model, write $\hat m(a,z)=\hat\alpha+\hat\tau a+\hat\beta z$. The standardized dose-response estimator is}
+If $Z$ is observed, adjustment removes this confounding bias under model \eqref{eq:gaussian-model}. Regressing $Y$ on both $A$ and $Z$ estimates the conditional mean in \eqref{eq:g-formula}. Allowing an intercept in the fitted model, write $\hat m(a,z)=\hat\alpha+\hat\tau a+\hat\beta z$. The standardized dose-response estimator is
 \[
 \hat{\mu}(a) = \widehat{E[Y(a)]} = \frac{1}{n}\sum_{i=1}^n\hat{m}(a, Z_i).
 \]
@@ -341,12 +327,12 @@ One may estimate $\mu(a)-\mu(a')$ by
 \[
 \frac{1}{n}\sum_{i=1}^n\hat{m}(a, Z_i) - \frac{1}{n}\sum_{i=1}^n\hat{m}(a', Z_i) = \hat{\tau}(a-a')
 \]
-\revision{under the constant $\tau$ assumption.}{under this additive linear model with a constant treatment slope.}
+under this additive linear model with a constant treatment slope.
 
 \section{The Problem of Missing Confounders}
 \label{sec:missing-confounders}
 
-\revision{}{\subsection{A shared identification obstacle for standardization and IPW}
+\subsection{A shared identification obstacle for standardization and IPW}
 Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: their usual causal interpretations rely on the same exchangeability assumption.
 
 For binary treatment, define $m_a(w)=E[Y\mid A=a,W=w]$ and $q_a(w)=P(A=a\mid W=w)$. With positivity and suitable integrability, iterated expectation gives the observational identity
@@ -358,7 +344,7 @@ For binary treatment, define $m_a(w)=E[Y\mid A=a,W=w]$ and $q_a(w)=P(A=a\mid W=w
 \end{equation}
 This equality does not require exchangeability. Without exchangeability given $W$, however, neither side is guaranteed to equal the causal mean $E[Y(a)]$. Thus, a correctly estimated outcome regression or propensity score based only on $W$ can still target the wrong quantity. Balancing $W$ does not in general balance the latent $Z$ or eliminate residual confounding. Choosing IPW instead of standardization does not resolve this identification problem.
 
-The relevant question is whether the observed variables constitute a sufficient adjustment set. An unavailable variable does not automatically invalidate identification if another observed set already ensures exchangeability. When residual confounding remains, identification requires additional structure, such as suitable assumptions about proxies or the latent-confounder model; these assumptions must be justified separately.}
+The relevant question is whether the observed variables constitute a sufficient adjustment set. An unavailable variable does not automatically invalidate identification if another observed set already ensures exchangeability. When residual confounding remains, identification requires additional structure, such as suitable assumptions about proxies or the latent-confounder model; these assumptions must be justified separately.
 
 
 Recall the adjustment formula:
@@ -379,11 +365,11 @@ If $Z$ is missing, we ask whether $\tau$ can be identified from
     (Y,A,\underbrace{X}_{\text{proxy}}).
 \]
 In the example above, $X=(X_1,X_2)$ consists of noisy proxies for $Z$.
-\revision{Some related works study identification conditions for such models.}{The presence of proxies alone does not guarantee identification. Additional assumptions on the proxy measurements and their relationship to the latent confounder are needed; an assumed DAG must be paired with sufficient identifying restrictions.
+The presence of proxies alone does not guarantee identification. Additional assumptions on the proxy measurements and their relationship to the latent confounder are needed; an assumed DAG must be paired with sufficient identifying restrictions.
 
-A reference directly related to this research direction is Miao et al.~\cite{miao2018proxy}. They show that suitable proxies can identify causal effects under additional assumptions about their causal relationships and how much information they carry about the unmeasured confounder. Their result does not mean that any two noisy proxies can be substituted for $Z$ in an ordinary adjustment regression.}
+A reference directly related to this research direction is Miao et al.~\cite{miao2018proxy}. They show that suitable proxies can identify causal effects under additional assumptions about their causal relationships and how much information they carry about the unmeasured confounder. Their result does not mean that any two noisy proxies can be substituted for $Z$ in an ordinary adjustment regression.
 
-\revision{}{\begin{remark}[Unobserved versus partially missing confounders]
+\begin{remark}[Unobserved versus partially missing confounders]
 Here, ``missing'' can mean three different things:
 \begin{itemize}
  \item \textbf{A missing potential outcome:} we observe what happened under the treatment a person received, but not what would have happened under the alternative treatment. This is the usual counterfactual problem, even in a randomized study.
@@ -401,7 +387,7 @@ With both independent-error proxies, the coefficient of $A$ in a regression on $
 \[
  \tau+\beta\frac{s^2}{2(1+s^2)},\qquad s>0.
 \]
-To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.}
+To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.
 
 \section{Causal Inference with Models}
 We refer to Chapters 12 and 13 (partial) in \cite{hernanrobins2020whatif}. In particular, we consider standardization and IP least square methods.
