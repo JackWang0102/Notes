@@ -31,7 +31,7 @@
 \maketitle
 \textbf{Abstract.} \revision{This note discusses some basic concepts used is my causal inference project. Specifically, it does not discuss topics on causal graphs such as structural learning. We focus on inference given a DAG, with a focus on missing confounder problems. Several methodologies tackling this problem are briefly introduced.}{This note reviews potential outcomes, causal estimands, and identification by standardization and inverse propensity weighting. It distinguishes causal effects from observed associations and explains the assumptions needed to connect them. The research focus is inference with a given causal directed acyclic graph (DAG), especially when confounders are unmeasured and proxies are available; causal discovery is outside the scope of this note.}
 
-\revision{}{{\small These additions follow Heejong Bong's \emph{Chapter 1: Identification under Potential Outcome Approach} (STAT 556, August 24, 2026), especially Sections 1.2--1.8. The SCM and proxy examples extend that foundation to the research setting.}}
+\revision{}{{\small These additions follow DR. Heejong Bong's STAT 556 notes \emph{Chapters 1 and 3}. The SCM and proxy examples extend that foundation to the research setting.}}
 
 \tableofcontents
 \bigskip
@@ -93,7 +93,7 @@ The \emph{sharp causal null}, $Y_i(1)=Y_i(0)$ for every individual, implies a ze
 A causal estimand is \emph{identified} under a model if every full-data distribution compatible with the observed-data distribution and the model's assumptions gives the same value of that estimand. \emph{Estimation} uses a finite sample to approximate the identified functional. More data alone cannot resolve nonidentification under the assumed model.
 \end{definition}
 
-In the lecture's Tables 1.1--1.4, the same observed $(A,Y)$ data admit potential-outcome completions with ATEs $0$, $11/20$, and $-9/20$. Thus, consistency alone does not identify the ATE. Observed association compares different groups, whereas a causal contrast compares the same target population under different interventions.}
+}
 
 \subsection{Factual and Potential Outcomes in an SCM}
 
@@ -301,7 +301,7 @@ Suppose that $Z$ is a confounder. Without adjustment, correlation
 \end{tikzpicture}
 \end{center}
 
-\paragraph{A Linear Gaussian Example}
+\paragraph{A Linear Gaussian Example.}
 Consider
 \begin{align}
 \label{eq:gaussian-model}
@@ -402,6 +402,10 @@ With both independent-error proxies, the coefficient of $A$ in a regression on $
  \tau+\beta\frac{s^2}{2(1+s^2)},\qquad s>0.
 \]
 To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.}
+
+\section{Causal Inference with Models}
+We refer to Chapters 12 and 13 (partial) in \cite{hernanrobins2020whatif}. In particular, we consider standardization and IP least square methods.
+
 
 \clearpage
 \bibliography{ref}
