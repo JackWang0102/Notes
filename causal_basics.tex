@@ -565,15 +565,11 @@ In addition to Assumption~\ref{ass:str}, assume consistency and \emph{latent con
 The averaging uses the \emph{marginal} distribution of $(U,W)$ in the target population, not their distribution among those with $A=a$ \cite{miao2018proxy}.
 
 \begin{proof}
-First show what the bridge equation tells us about the latent confounder. Fix $a,w$ and define
-\[
- m_a(z,w)=E[Y\mid A=a,Z=z,W=w],
- \qquad r_a(z,w)=E[h(U,a,w)\mid Z=z,W=w].
-\]
+First show what the bridge equation tells us about the latent confounder. Fix $a,w$.
 Using iterated expectation and Assumption~\ref{ass:str}(i),
 \[
  E[Y\mid A=a,V=v,W=w]
- =E[E[Y\mid a,Z,w]\mid A=a,V=v,W=w].
+ =E[E[Y\mid A=a,Z,W=w]\mid A=a,V=v,W=w].
 \]
 Likewise, Assumption~\ref{ass:str}(ii) gives
 \[
@@ -583,9 +579,17 @@ Likewise, Assumption~\ref{ass:str}(ii) gives
 Thus, the observed bridge equation \eqref{eq:fredholm} implies
 \[
  E[g_{a,w}(Z)\mid A=a,V=v,W=w]=0,
- \qquad g_{a,w}(z):=m_a(z,w)-r_a(z,w),
 \]
-for almost every supported $v$. Completeness~\ref{ass:comp}(i) now implies $m_a(Z,w)=r_a(Z,w)$ almost surely under $P_{Z\mid A=a,W=w}$. Positivity extends this equality to the target distribution of $(Z,W)$.
+for almost every supported $v$, where
+\[
+ g_{a,w}(z):=E[Y\mid A=a,Z=z,W=w]
+             -E[h(U,a,w)\mid Z=z,W=w].
+\]
+Completeness~\ref{ass:comp}(i) now implies $g_{a,w}(Z)=0$ almost surely under $P_{Z\mid A=a,W=w}$. Equivalently,
+\[
+ E[Y\mid A=a,Z,W=w]=E[h(U,a,w)\mid Z,W=w].
+\]
+Positivity extends this equality to the target distribution of $(Z,W)$.
 
 We can now average over that target distribution:
 \begin{align*}
@@ -593,7 +597,7 @@ We can now average over that target distribution:
  &=E_{Z,W}\{E[Y(a)\mid Z,W]\}\\
  &=E_{Z,W}\{E[Y(a)\mid A=a,Z,W]\}\\
  &=E_{Z,W}\{E[Y\mid A=a,Z,W]\}\\
- &=E_{Z,W}\{r_a(Z,W)\}\\
+ &=E_{Z,W}\{E[h(U,a,W)\mid Z,W]\}\\
  &=E[h(U,a,W)].
 \end{align*}
 The second equality uses latent conditional exchangeability; the third uses consistency. The fourth is the equality established by completeness, and the last is iterated expectation.
