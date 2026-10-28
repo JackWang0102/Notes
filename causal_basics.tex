@@ -451,7 +451,7 @@ With both independent-error proxies, the coefficient of $A$ in a regression on $
 To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.
 
 \subsection{Proximal Causal Inference}
-To mitigate the problem of missing confounders, one may assume that an \emph{instrumental variable (IV)} is observed instead \cite{bowden1990instrumental}. An IV is a variable that is independent of \emph{any} missing confounders. This definition, however, makes finding an IV a non-trivial task in practice. Recognizing this fundamental difficulty, recent works focus on another class of models called \emph{proxy} models to relax such restriction \cite{mastouri2021proximal}. A proxy is dependent of missing confounders, which makes it more realistic to find than an IV. Causal inference based on a proxy model to reduce confounding bias from unmeasured confounders is called \emph{proximal causal inference (PCI)} \cite{miao2018proxy, kuroki2014measurement, mastouri2021proximal, tchetgen2020introduction, kivva2023cross}. At a high-level, PCI generalizes $g-$formula \eqref{eq:g-formula} and standardization ($g-$computation) to a \emph{proximal $g-$formula} with a \emph{bridge function} and relevant computation. 
+To mitigate the problem of missing confounders, one may assume that an \emph{instrumental variable (IV)} is observed instead \cite{bowden1990instrumental}. An IV is a variable that is independent of \emph{any} missing confounders. This definition, however, makes finding an IV a non-trivial task in practice. Recognizing this fundamental difficulty, recent works focus on another class of models called \emph{proxy} models to relax such restriction \cite{mastouri2021proximal}. A proxy is dependent of missing confounders (see Figures \ref{fig:proxy-measurement} and \ref{fig:proxy-baseline}), which makes it more realistic to find than an IV. Causal inference based on a proxy model to reduce confounding bias from unmeasured confounders is called \emph{proximal causal inference (PCI)} \cite{miao2018proxy, kuroki2014measurement, mastouri2021proximal, tchetgen2020introduction, kivva2023cross}. At a high-level, PCI generalizes $g-$formula \eqref{eq:g-formula} and standardization ($g-$computation) to a \emph{proximal $g-$formula} with a \emph{bridge function} and relevant computation. 
 
 \paragraph{Proxy models.}
 Consider a treatment-inducing proxy $V$, an outcome-inducing proxy $U$, an unmeasured confounder $Z$, and, when available, observed baseline covariates $W$. Figure~\ref{fig:proxy-dags} shows two representative models using this note's notation, following the proxy structures in \cite{mastouri2021proximal,tchetgen2020introduction}. A proxy need not directly cause treatment or outcome: $V\to A$ and $U\to Y$ may be absent.
@@ -475,7 +475,7 @@ Consider a treatment-inducing proxy $V$, an outcome-inducing proxy $U$, an unmea
     \draw[->] (Z) -- (Y);
     \draw[->] (A) -- (Y);
 \end{tikzpicture}
-\caption{Measurement-only proxies.}
+\caption{Measurement-only proxies, i.e., basic proxy model \cite{louizos2017bayesian, fang2026stochastic}}
 \label{fig:proxy-measurement}
 \end{subfigure}
 \hfill
@@ -515,24 +515,77 @@ Consider a treatment-inducing proxy $V$, an outcome-inducing proxy $U$, an unmea
 
 In both graphs, the proxies provide information about $Z$. There is no direct arrow $V\to Y$ or $A\to U$: the treatment proxy has no extra direct effect on the outcome, and the outcome proxy is not caused by treatment. The graphs imply $Y\indep V\mid(A,Z,W)$ and $U\indep(A,V)\mid(Z,W)$, omitting $W$ in panel (a). These graphical restrictions alone do not establish identification; the additional completeness and bridge-function conditions are discussed below.
 
-\paragraph{Assumptions.} In what follows, we follow \cite{mastouri2021proximal} and \cite{tchetgen2020introduction}. PCI starts with \emph{structural assumptions} and \emph{completeness assumptions}.
+\paragraph{An example.} In Figure \ref{fig:proxy-baseline}, $Z$ could represent the true severity of a patient, $V$ could represent observed symptoms, and $A$ is the treatment assigned by a physician according patient's symptoms. $U$ could be pretreatment biomarkers that affects the health outcome $Y$ but not used in assigning treatment to the patient.
+
+\paragraph{Assumptions.} In what follows, we follow \cite{mastouri2021proximal} and \cite{tchetgen2020introduction}. PCI starts with \emph{structural assumptions} and \emph{completeness assumptions}. The former concerns the structure of the causal DAG while the latter states that the proxies should be informative enough for the unmeasured confounder.
 
 \begin{assumption}[Structural assumptions]
-    
+\label{ass:str}
+Assume the following conditional independence
+\begin{itemize}
+    \item[(i)] $Y\indep V|A,Z,W$
+    \item[(ii)] $U \indep (A, V)| Z, W$
+\end{itemize}
 \end{assumption}
+
+Refer to Table A1 in \cite{tchetgen2020introduction} for more DAGs that satisfy these conditions.
 
 \begin{assumption}[Completeness assumptions]
-    
+\label{ass:comp}
+There are two completeness conditions
+\begin{itemize}
+    \item[(i)] $E[g(Z)|A, V, W]=0$ if and only if $g(Z) = 0$ almost sure.
+    \item[(ii)] $E[g(V)|A, U, W]=0$ if and only if $g(V) = 0$ almost sure.
+\end{itemize}
 \end{assumption}
+The first part of the completeness assumptions state that $V$ should encode enough information for $Z$. In discrete cases where $Z$ and $V$ are categorical with $d_Z$ and $d_V$ categories, respectively, it can be shown that $d_V \geq d_Z$ \cite{tchetgen2020introduction}. 
 
-The second part of the completeness assumption, together with other technical conditiond in \cite{miao2018proxy}, guarantees the existence of the bridge function
+We next introduce \emph{outcome confounding bridge function} or \emph{bridge function} $h$, which takes values of outcome-inducing proxy $U$, observed covariates $W$ if any, and treatment $A$.
+\begin{definition}[Bridge function]
+    Let $h: \mathcal{V} \times \mathcal{A} \times \mathcal{U} \to \mathcal{R}$. Then it is an \emph{outcome confounding bridge function} if it is a solution to the following integral equation
+    \begin{align}
+        \label{eq:fredholm}
+        E[Y|\underbrace{A=a, V=v, W=w}_{\text{treatment-related}}] &= \int_{\mathcal{U}}h(u, a, w)p(u|a,v,w)du \\
+        &= \underbrace{E[h(U, A, W) | A=a, V=v, W=w]}_{\textcolor{blue}{\text{ over outcome proxy $U$ given treatment-related}}},
+    \end{align}
+    for any pair $(a, v, w)$. \eqref{eq:fredholm} is called Fredholm integral equation of the first kind.
+\end{definition}
 
-\paragraph{Proximal $g-$ formula.}
-result for bridge function...
+Assumption \ref{ass:comp}(ii), together with other technical conditions in \cite{miao2018proxy}, guarantees the existence of solution in \eqref{eq:fredholm}. Additionally, this implies $d_W \geq d_Z$, where $d_W$ is defined analogously. Note that $h$ need not be unique but the resulting potential outcome mean is the same.
+
+\paragraph{Proximal $g-$ formula.} With consistency, overlap, existence a bridge $h$,  Assumption \ref{ass:str} and Assumption \ref{ass:comp} (i), a proximal $g-$formula is given by \cite{miao2018proxy}
+\begin{align*}
+    \label{eq:prox-g}
+    E[Y(a)] &= E\left\{E[Y(a) |A, Z, W]\right\} \\
+    &= E\left\{E[Y |A=a, Z, W]\right\} \qquad \text{(By consistency)}  \\
+    &= E\left\{E[Y |A=a, Z, W, V=v]\right\} \qquad \text{(By Assumption \ref{ass:str}(i))} \\
+    &= E\left\{E[h(U, A, W)|Z,W,A=a, V=v]\right\} \\
+    &= E\left\{E[h(U, a, W)|Z,W]\right\} \\
+    &= E[h(U, a, W)] = \int_{\mathcal{U} \times \mathcal{W}}h(u,a,w)p(u,w)dudw
+\end{align*}
+where the third equality follows from \eqref{eq:fredholm} and Assumption \ref{ass:comp} (i)
+\begin{align*}
+    0 &= E[Y| A=a, V=v, W=w] - E[h(U, A, W) | A=a, V=v, W=w] \\
+    &= E\left\{E[Y|Z,W,A]| A=a, V=v, W=w\right\} - E\left\{E[h(U, A, W)|Z,W,A]| A=a, V=v, W=w\right\} \\
+    &= E\left\{E[Y|Z,W,A] - E[h(U, A, W)|Z,W,A]| A=a, V=v, W=w\right\} \\
+    &= E\left\{\underbrace{E[Y|Z,w,a] - E[h(U, a, w)|Z,w,a]}_{:= g(Z)} | A=a, V=v, W=w\right\} \\
+    &\ \Rightarrow E[Y|Z,w,a] - E[h(U, a, w)|Z,w,a] = 0
+\end{align*}
+almost surely. Thus, by Assumption \ref{ass:str}, $E[Y|Z,w,a, V=v] - E[h(U, a, w)|Z,w,a, V=v] = 0$ 
 
 \paragraph{Computation.}
 Most works focus on identification conditions in proxy models. 
 how to find it: KPV and PMMR proposed by \cite{mastouri2021proximal}. These two methods are inspired kernel regression in IV setups.
+
+\paragraph{Difficulties.}
+The PCI framework looks promising; yet in implementation, it suffers from some fundamental issues:
+\begin{enumerate}
+    \item 
+\end{enumerate}
+
+\begin{remark}[More on Assumption \ref{ass:comp}.]
+    
+\end{remark}
 
 \section{Causal Inference with Models}
 \label{sec:causal-models}
