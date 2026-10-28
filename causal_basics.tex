@@ -532,46 +532,72 @@ Refer to Table A1 in \cite{tchetgen2020introduction} for more DAGs that satisfy 
 
 \begin{assumption}[Completeness assumptions]
 \label{ass:comp}
-There are two completeness conditions
+For each treatment level $a$ of interest and almost every covariate value $w$, assume the following for every square-integrable function $g$:
 \begin{itemize}
-    \item[(i)] $E[g(Z)|A, V, W]=0$ if and only if $g(Z) = 0$ almost sure.
-    \item[(ii)] $E[g(V)|A, U, W]=0$ if and only if $g(V) = 0$ almost sure.
+    \item[(i)] $E[g(Z)\mid A=a,V,W=w]=0$ almost surely in $V$ implies $g(Z)=0$ almost surely under $P_{Z\mid A=a,W=w}$.
+    \item[(ii)] $E[g(V)\mid A=a,U,W=w]=0$ almost surely in $U$ implies $g(V)=0$ almost surely under $P_{V\mid A=a,W=w}$.
 \end{itemize}
+The reverse implications are immediate. Writing the conditions within each $(a,w)$ stratum matters because the function $g$ used in the proof below depends on the fixed values $a,w$.
 \end{assumption}
-The first part of the completeness assumptions state that $V$ should encode enough information for $Z$. In discrete cases where $Z$ and $V$ are categorical with $d_Z$ and $d_V$ categories, respectively, it can be shown that $d_V \geq d_Z$ \cite{tchetgen2020introduction}. 
+The first condition says that $V$ must carry enough information about $Z$. In a finite categorical setting, the corresponding conditional probability matrix must have full column rank, requiring at least as many supported categories of $V$ as of $Z$ within each relevant $(a,w)$ stratum \cite{tchetgen2020introduction}.
 
-We next introduce \emph{outcome confounding bridge function} or \emph{bridge function} $h$, which takes values of outcome-inducing proxy $U$, observed covariates $W$ if any, and treatment $A$.
+We next introduce an \emph{outcome confounding bridge function}, or simply a \emph{bridge function}, $h$, whose arguments are the outcome-inducing proxy $U$, treatment $A$, and observed covariates $W$.
 \begin{definition}[Bridge function]
-    Let $h: \mathcal{V} \times \mathcal{A} \times \mathcal{U} \to \mathcal{R}$. Then it is an \emph{outcome confounding bridge function} if it is a solution to the following integral equation
-    \begin{align}
-        \label{eq:fredholm}
-        E[Y|\underbrace{A=a, V=v, W=w}_{\text{treatment-related}}] &= \int_{\mathcal{U}}h(u, a, w)p(u|a,v,w)du \\
-        &= \underbrace{E[h(U, A, W) | A=a, V=v, W=w]}_{\textcolor{blue}{\text{ over outcome proxy $U$ given treatment-related}}},
-    \end{align}
-    for any pair $(a, v, w)$. \eqref{eq:fredholm} is called Fredholm integral equation of the first kind.
+An integrable function $h:\mathcal U\times\mathcal A\times\mathcal W\to\mathbb R$ is an observed-data outcome bridge if
+\begin{equation}
+\label{eq:fredholm}
+ E[Y\mid A=a,V=v,W=w]
+ =E[h(U,a,w)\mid A=a,V=v,W=w]
+ =\int_{\mathcal U}h(u,a,w)p(u\mid a,v,w)\,du
+\end{equation}
+for almost every supported triple $(a,v,w)$. In the density setting, this is a Fredholm integral equation of the first kind; use a sum when $U$ is discrete.
 \end{definition}
 
-Assumption \ref{ass:comp}(ii), together with other technical conditions in \cite{miao2018proxy}, guarantees the existence of solution in \eqref{eq:fredholm}. Additionally, this implies $d_W \geq d_Z$, where $d_W$ is defined analogously. Note that $h$ need not be unique but the resulting potential outcome mean is the same.
+Assumption~\ref{ass:comp}(ii), together with additional regularity and range conditions such as those discussed in \cite{miao2018proxy,mastouri2021proximal}, can ensure existence of a solution to \eqref{eq:fredholm}; completeness alone does not ensure existence. The categorical information requirements concern the proxies $U,V$, not the number of categories of the baseline covariates $W$. A bridge need not be unique, but the argument below shows that any admissible solution gives the same potential-outcome mean.
 
-\paragraph{Proximal $g-$ formula.} With consistency, overlap, existence a bridge $h$,  Assumption \ref{ass:str} and Assumption \ref{ass:comp} (i), a proximal $g-$formula is given by \cite{miao2018proxy}
+\paragraph{Proximal $g$-formula.}
+In addition to Assumption~\ref{ass:str}, assume consistency and \emph{latent conditional exchangeability}, $Y(a)\indep A\mid(Z,W)$, as encoded by the causal DAGs above. Also assume positivity for treatment $a$ given $(Z,W)$ throughout the target population, existence of an integrable bridge $h$, and Assumption~\ref{ass:comp}(i). The conditional-mean differences used below must be square-integrable so that completeness applies. For continuous treatments, retain the support and regularity qualifications discussed earlier. Then
+\begin{equation}
+\label{eq:prox-g}
+ \boxed{E[Y(a)]=E[h(U,a,W)]
+ =\int h(u,a,w)\,dF_{U,W}(u,w).}
+\end{equation}
+The averaging uses the \emph{marginal} distribution of $(U,W)$ in the target population, not their distribution among those with $A=a$ \cite{miao2018proxy}.
+
+\begin{proof}
+First show what the bridge equation tells us about the latent confounder. Fix $a,w$ and define
+\[
+ m_a(z,w)=E[Y\mid A=a,Z=z,W=w],
+ \qquad r_a(z,w)=E[h(U,a,w)\mid Z=z,W=w].
+\]
+Using iterated expectation and Assumption~\ref{ass:str}(i),
+\[
+ E[Y\mid A=a,V=v,W=w]
+ =E[m_a(Z,w)\mid A=a,V=v,W=w].
+\]
+Likewise, Assumption~\ref{ass:str}(ii) gives
+\[
+ E[h(U,a,w)\mid A=a,V=v,W=w]
+ =E[r_a(Z,w)\mid A=a,V=v,W=w].
+\]
+Thus, the observed bridge equation \eqref{eq:fredholm} implies
+\[
+ E[g_{a,w}(Z)\mid A=a,V=v,W=w]=0,
+ \qquad g_{a,w}(z):=m_a(z,w)-r_a(z,w),
+\]
+for almost every supported $v$. Completeness~\ref{ass:comp}(i) now implies $m_a(Z,w)=r_a(Z,w)$ almost surely under $P_{Z\mid A=a,W=w}$. Positivity extends this equality to the target distribution of $(Z,W)$.
+
+We can now average over that target distribution:
 \begin{align*}
-    \label{eq:prox-g}
-    E[Y(a)] &= E\left\{E[Y(a) |A, Z, W]\right\} \\
-    &= E\left\{E[Y |A=a, Z, W]\right\} \qquad \text{(By consistency)}  \\
-    &= E\left\{E[Y |A=a, Z, W, V=v]\right\} \qquad \text{(By Assumption \ref{ass:str}(i))} \\
-    &= E\left\{E[h(U, A, W)|Z,W,A=a, V=v]\right\} \\
-    &= E\left\{E[h(U, a, W)|Z,W]\right\} \\
-    &= E[h(U, a, W)] = \int_{\mathcal{U} \times \mathcal{W}}h(u,a,w)p(u,w)dudw
+ E[Y(a)]
+ &=E_{Z,W}\{E[Y(a)\mid Z,W]\}\\
+ &=E_{Z,W}\{E[Y(a)\mid A=a,Z,W]\}\\
+ &=E_{Z,W}\{m_a(Z,W)\}\\
+ &=E_{Z,W}\{r_a(Z,W)\}\\
+ &=E[h(U,a,W)].
 \end{align*}
-where the third equality follows from \eqref{eq:fredholm} and Assumption \ref{ass:comp} (i)
-\begin{align*}
-    0 &= E[Y| A=a, V=v, W=w] - E[h(U, A, W) | A=a, V=v, W=w] \\
-    &= E\left\{E[Y|Z,W,A]| A=a, V=v, W=w\right\} - E\left\{E[h(U, A, W)|Z,W,A]| A=a, V=v, W=w\right\} \\
-    &= E\left\{E[Y|Z,W,A] - E[h(U, A, W)|Z,W,A]| A=a, V=v, W=w\right\} \\
-    &= E\left\{\underbrace{E[Y|Z,w,a] - E[h(U, a, w)|Z,w,a]}_{:= g(Z)} | A=a, V=v, W=w\right\} \\
-    &\ \Rightarrow E[Y|Z,w,a] - E[h(U, a, w)|Z,w,a] = 0
-\end{align*}
-almost surely. Thus, by Assumption \ref{ass:str}, $E[Y|Z,w,a, V=v] - E[h(U, a, w)|Z,w,a, V=v] = 0$ 
+The second equality uses latent conditional exchangeability; the third uses consistency. The fourth is the equality established by completeness, and the last is iterated expectation.
+\end{proof}
 
 \paragraph{Computation.}
 Most works focus on identification conditions in proxy models. 
