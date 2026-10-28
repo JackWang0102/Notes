@@ -18,7 +18,7 @@
 \maketitle
 \textbf{Abstract.} This note reviews potential outcomes, causal estimands, and identification by standardization and inverse propensity weighting. It distinguishes causal effects from observed associations and explains the assumptions needed to connect them. The research focus is inference with a given causal directed acyclic graph (DAG), especially when confounders are unmeasured and proxies are available; causal discovery is outside the scope of this note.
 
-{\small These additions follow DR. Heejong Bong's STAT 556 notes \emph{Chapters 1 and 3}. The SCM and proxy examples extend that foundation to the research setting.}
+{\small These additions follow Dr. Heejong Bong's STAT 556 notes \emph{Chapters 1 and 3}. The SCM and proxy examples extend that foundation to the research setting.}
 
 \tableofcontents
 \bigskip
@@ -391,7 +391,10 @@ under this additive linear model with a constant treatment slope.
 \label{sec:missing-confounders}
 
 \subsection{A shared identification obstacle for standardization and IPW}
-Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: \emph{their usual causal interpretations rely on the same exchangeability assumption.}
+
+Both standardization and IPW (and thus double machine learning \cite{bach2024doubleml}) rely on the correct specification of conditional exchangeability. However, in practice, this critical condition hinges on practitioners' domain knowledge to accurately capture \emph{all} relevant confounders \cite{tchetgen2020introduction}. Any unmeasured (missing) confounder invalidates causal claims due to violation of conditional exchangability, leading to confounder bias in causal estimate \cite{tchetgen2014control}.
+
+Let $W$ denote the observed baseline covariates and retain $Z$ for an unmeasured confounder. Even if $Y(a)\indep A\mid(W,Z)$, it need not follow that $Y(a)\indep A\mid W$. Consequently, omitting a confounder required for exchangeability affects both standardization and IPW: \emph{their usual causal interpretations rely on the same exchangeability assumption.} 
 
 For binary treatment, define $m_a(w)=E[Y\mid A=a,W=w]$ and $q_a(w)=P(A=a\mid W=w)$. With positivity and suitable integrability, iterated expectation gives the observational identity
 \begin{equation}
@@ -425,7 +428,7 @@ If $Z$ is missing, we ask whether $\tau$ can be identified from
 In the example above, $X=(X_1,X_2)$ consists of noisy proxies for $Z$.
 The presence of proxies alone does not guarantee identification. Additional assumptions on the proxy measurements and their relationship to the latent confounder are needed; an assumed DAG must be paired with sufficient identifying restrictions.
 
-A reference directly related to this research direction is Miao et al.~\cite{miao2018proxy}. They show that suitable proxies can identify causal effects under additional assumptions about their causal relationships and how much information they carry about the unmeasured confounder. Their result does not mean that any two noisy proxies can be substituted for $Z$ in an ordinary adjustment regression.
+A reference directly related to this research direction is \cite{miao2018proxy}. They show that suitable proxies can identify causal effects under additional assumptions about their causal relationships and how much information they carry about the unmeasured confounder. Their result does not mean that any two noisy proxies can be substituted for $Z$ in an ordinary adjustment regression.
 
 \begin{remark}[Unobserved versus partially missing confounders]
 Here, ``missing'' can mean three different things:
@@ -446,6 +449,30 @@ With both independent-error proxies, the coefficient of $A$ in a regression on $
  \tau+\beta\frac{s^2}{2(1+s^2)},\qquad s>0.
 \]
 To obtain these expressions, residualize $A=Z+e_a$ and $Z$ with respect to the included proxies. If $v$ is the residual variance of $Z$, the omitted-confounder contribution is $\beta v/(1+v)$, with $v=s^2/(1+s^2)$ for one proxy and $v=s^2/(s^2+2)$ for two. At $s=0$, a proxy measures $Z$ exactly and a nonredundant adjustment recovers $\tau$. Thus, noisy proxies can reduce residual confounding in this model while generally leaving bias. Identifying a latent-confounder model requires more than simply substituting proxies for $Z$ in an ordinary adjustment regression.
+
+\subsection{Proximal Causal Inference}
+To mitigate the problem of missing confounders, one may assume that an \emph{instrumental variable (IV)} is observed instead \cite{bowden1990instrumental}. An IV is a variable that is independent of \emph{any} missing confounders. This definition, however, makes finding an IV a non-trivial task in practice. Recognizing this fundamental difficulty, recent works focus on another class of models called \emph{proxy} models to relax such restriction \cite{mastouri2021proximal}. A proxy is dependent of missing confounders, which makes it more realistic to find than an IV. Causal inference based on a proxy model to reduce confounding bias from unmeasured confounders is called \emph{proximal causal inference (PCI)} \cite{miao2018proxy, kuroki2014measurement, mastouri2021proximal, tchetgen2020introduction, kivva2023cross}. At a high-level, PCI generalizes $g-$formula \eqref{eq:g-formula} and standardization ($g-$computation) to a \emph{proximal $g-$formula} with a \emph{bridge function} and relevant computation. 
+
+\paragraph{Proxy models.} Let's consider a two-proxy case with a \emph{treatment-inducing proxy} $V$, an \emph{outcome-inducing proxy} $U$, and potentially observed confounders $W$. Below is the causal DAG for such models we consider. Note that $V$ is not necessary a direct cause of $A$; likewise, $W$ might not be a direct cause of $Y$.
+
+\paragraph{Assumptions.} In what follows, we follow \cite{mastouri2021proximal} and \cite{tchetgen2020introduction}. PCI starts with \emph{structural assumptions} and \emph{completeness assumptions}.
+
+\begin{assumption}[Structural assumptions]
+    
+\end{assumption}
+
+\begin{assumption}[Completeness assumptions]
+    
+\end{assumption}
+
+The second part of the completeness assumption, together with other technical conditiond in \cite{miao2018proxy}, guarantees the existence of the bridge function
+
+\paragraph{Proximal $g-$ formula.}
+result for bridge function...
+
+\paragraph{Computation.}
+Most works focus on identification conditions in proxy models. 
+how to find it: KPV and PMMR proposed by \cite{mastouri2021proximal}. These two methods are inspired kernel regression in IV setups.
 
 \section{Causal Inference with Models}
 \label{sec:causal-models}
@@ -469,7 +496,7 @@ Using the true weights, each treatment group in the weighted \emph{pseudo-popula
 \[
  E^*[Y\mid A=a]=E[Y(a)],
 \]
-where $E^*$ denotes expectation in the weighted population. Consequently, the associational model $E^*[Y\mid A]=\theta_0+\theta_1 A$ has $\theta_1=\beta_1$. A weighted comparison of observed outcomes can thus estimate the ATE in the original population.
+where $E^*$ denotes expectation in the weighted population. Consequently, the associational model $E^*[Y\mid A]=\theta_0+\theta_1 A$ has $\theta_1=\beta_1$. A weighted comparison of observed outcomes can thus estimate the ATE in the original population. It is shown that $\hat{\theta}_1$ is consistent of $\beta_1$.
 
 \paragraph{Inverse propensity weighted least squares.}
 We implement this idea without generating new observations. Estimate the propensity score, for example by logistic regression, and fit
