@@ -485,29 +485,31 @@ Consider a treatment-inducing proxy $V$, an outcome-inducing proxy $U$, an unmea
     >=Stealth, semithick,
     observed/.style={circle,draw,minimum size=8mm,inner sep=1pt},
     latent/.style={observed,dashed,fill=gray!12}]
-    \node[observed] (W) at (0,3.35) {$W$};
-    \node[latent] (Z) at (0,1.9) {$Z$};
-    \node[observed] (V) at (-1.55,0.55) {$V$};
-    \node[observed] (U) at (1.55,0.55) {$U$};
-    \node[observed] (A) at (-1.55,-1) {$A$};
-    \node[observed] (Y) at (1.55,-1) {$Y$};
-    \draw[->] (W) -- (Z);
-    \draw[->] (W) to[out=180,in=90] (V);
-    \draw[->] (W) to[out=0,in=90] (U);
-    \draw[->] (W) to[out=160,in=180,looseness=1.3] (A);
-    \draw[->] (W) to[out=20,in=0,looseness=1.3] (Y);
+    % Figure 1 of Mastouri et al., with this note's variable names:
+    % paper (U,Z,X,W) = note (Z,V,W,U).
+    \node[latent] (Z) at (0,2.05) {$Z$};
+    \node[observed] (V) at (-1.6,0.55) {$V$};
+    \node[observed] (W) at (0,0.55) {$W$};
+    \node[observed] (U) at (1.6,0.55) {$U$};
+    \node[observed] (A) at (-1,-1) {$A$};
+    \node[observed] (Y) at (1,-1) {$Y$};
     \draw[->] (Z) -- (V);
+    \draw[->] (Z) -- (W);
     \draw[->] (Z) -- (U);
     \draw[->] (Z) -- (A);
     \draw[->] (Z) -- (Y);
+    \draw[->] (W) -- (V);
+    \draw[->] (W) -- (U);
+    \draw[->] (W) -- (A);
+    \draw[->] (W) -- (Y);
     \draw[->] (V) -- (A);
     \draw[->] (U) -- (Y);
     \draw[->] (A) -- (Y);
 \end{tikzpicture}
-\caption{Direct proxy effects and observed covariates.}
+\caption{Proxy DAG from Figure 1 of \cite{mastouri2021proximal}.}
 \label{fig:proxy-baseline}
 \end{subfigure}
-\caption{Two proxy-model DAGs. Solid circles are observed variables; the shaded, dashed circle $Z$ is unobserved. Panel (a) matches the Gaussian measurement model in \eqref{eq:gaussian-model}, with $V=X_1$ and $U=X_2$. Panel (b) additionally allows $V\to A$ and $U\to Y$, and illustrates $W$ as a baseline common cause. The direct proxy effects and individual arrows out of $W$ may be omitted when appropriate to the application.}
+\caption{Two proxy-model DAGs. Solid circles are observed variables; the shaded, dashed circle $Z$ is unobserved. Panel (a) matches the Gaussian measurement model in \eqref{eq:gaussian-model}, with $V=X_1$ and $U=X_2$. Panel (b) matches the paper's Figure 1 after relabeling: the paper's $(U,Z,X,W)$ correspond to this note's $(Z,V,W,U)$. In particular, the latent confounder points to the observed covariates, $Z\to W$.}
 \label{fig:proxy-dags}
 \end{figure}
 
