@@ -573,12 +573,12 @@ First show what the bridge equation tells us about the latent confounder. Fix $a
 Using iterated expectation and Assumption~\ref{ass:str}(i),
 \[
  E[Y\mid A=a,V=v,W=w]
- =E[m_a(Z,w)\mid A=a,V=v,W=w].
+ =E[E[Y\mid a,Z,w]\mid A=a,V=v,W=w].
 \]
 Likewise, Assumption~\ref{ass:str}(ii) gives
 \[
  E[h(U,a,w)\mid A=a,V=v,W=w]
- =E[r_a(Z,w)\mid A=a,V=v,W=w].
+ =E[E[h(U,a,w)\mid Z,W=w]\mid A=a,V=v,W=w].
 \]
 Thus, the observed bridge equation \eqref{eq:fredholm} implies
 \[
@@ -592,7 +592,7 @@ We can now average over that target distribution:
  E[Y(a)]
  &=E_{Z,W}\{E[Y(a)\mid Z,W]\}\\
  &=E_{Z,W}\{E[Y(a)\mid A=a,Z,W]\}\\
- &=E_{Z,W}\{m_a(Z,W)\}\\
+ &=E_{Z,W}\{E[Y\mid A=a,Z,W]\}\\
  &=E_{Z,W}\{r_a(Z,W)\}\\
  &=E[h(U,a,W)].
 \end{align*}
