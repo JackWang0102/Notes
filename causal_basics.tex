@@ -721,19 +721,59 @@ $O(m_2^3)$. This reduction concerns the second-stage solve;
 the first-stage fit and construction of the kernel matrices
 have additional computational costs.
 
-\item \textbf{PMMR}, on the other hand, only consists of one stage. It takes the idea of a mathematical fact \cite[Lemma 1]{mastouri2021proximal}: a measurable function $h$ is a solution to \eqref{eq:fredholm} if and only if it satisfies the conditional moment restriction (CMR) $E[Y-h(U, A, W)|A,V,W]=0$, which further implies 
+\item \textbf{PMMR} estimates the bridge in a single stage.
+By Lemma 1 of \cite{mastouri2021proximal}, the bridge equation
+\eqref{eq:fredholm} is equivalent to the conditional moment
+restriction
 \[
-E[(Y-h(U, A, W))g(A,V,W)]=0
+    E[Y-h(U,A,W)\mid A,V,W]=0.
 \]
-for any measurable function $g$ on .... In this form, they generalize the Maximum moment restriction (MMR) method to PMMR to solve for $h$. The PMMR objective is thus given by
+This implies $E[(Y-h(U,A,W))g(A,V,W)]=0$ for every measurable
+$g$ for which the expectation exists. PMMR adapts the maximum
+moment restriction framework \cite{muandet2020kernel} and
+MMR-IV \cite{zhang2020instrumental} by minimizing
 \begin{equation}
-    \label{eq:pmmr_pop}
+\label{eq:pmmr_pop}
+    R_k(h)
+    =
+    \sup_{\substack{g\in\mathcal H_{AVW}\\
+                    \|g\|_{\mathcal H_{AVW}}\leq1}}
+    \left\{E[(Y-h(U,A,W))g(A,V,W)]\right\}^{2},
 \end{equation}
-Under Zhang et al 2020 theorem 1 (cite this paper), $R_k(h)=0$ if and only if $E[Y-h(U, A, W)|A,V,W]=0$, i.e., the population objective \eqref{eq:pmmr_pop} solves the inverse problem \eqref{eq:fredholm}. Lemma 2 further simplifies this objective to a kernel form, provided that some moment condition holds. Finally $h$ can be solved by minimizing an empirical version of \eqref{eq:pmmr_pop}, giving an objective 
+where $\mathcal H_{AVW}$ has kernel $k$.
+Under suitable moment conditions and an integrally strictly
+positive definite kernel, $R_k(h)=0$ if and only if the
+conditional moment restriction holds
+\cite{zhang2020instrumental,mastouri2021proximal}.
+
+Writing $\epsilon_h=Y-h(U,A,W)$, Lemma 2 of
+\cite{mastouri2021proximal} gives
+\[
+    R_k(h)
+    =E\!\left[
+        \epsilon_h\epsilon_h'
+        k((A,V,W),(A',V',W'))
+    \right],
+\]
+provided $E[\epsilon_h^2k((A,V,W),(A,V,W))]<\infty$;
+primes denote an independent copy of the full observation.
+The resulting regularized empirical objective is
 \begin{equation}
-    ...
+\label{eq:pmmr_emp}
+    \widehat h
+    =\arg\min_{h\in\mathcal H}
+    \left\{
+        \frac{1}{n^2}\sum_{i,j=1}^n
+        [Y_i-h(U_i,A_i,W_i)]
+        [Y_j-h(U_j,A_j,W_j)]k_{ij}
+        +\lambda\|h\|_{\mathcal H}^{2}
+    \right\},
 \end{equation}
-Again, the representer theorem is used to simplify the infinite-dimensional problem to a finite computable one. Both the KPV and PMMR solve \eqref{eq:fredholm} using kernel ridge regression: KPV uses two stages to sequentially optimize it by first solving for a conditional embedding mean; while PMMR resorts to an equivalent conditional moment condition and solve it by MMR in one step. 
+where $k_{ij}=k((A_i,V_i,W_i),(A_j,V_j,W_j))$ and $\lambda>0$.
+The representer theorem reduces this to a finite-dimensional
+kernel problem. Unlike KPV, PMMR directly optimizes the
+kernelized moment loss without first estimating a conditional
+mean embedding.
 
 \item \textbf{Proximal two-stage least squares (P2SLS)} assumes a parametric form of $h$...
 \end{enumerate}
