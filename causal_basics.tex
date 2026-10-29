@@ -553,7 +553,7 @@ An integrable function $h:\mathcal U\times\mathcal A\times\mathcal W\to\mathbb R
 for almost every supported triple $(a,v,w)$. In the density setting, this is a Fredholm integral equation of the first kind; use a sum when $U$ is discrete.
 \end{definition}
 
-Assumption~\ref{ass:comp}(ii), together with additional regularity and range conditions such as those discussed in \cite{miao2018proxy,mastouri2021proximal}, can ensure existence of a solution to \eqref{eq:fredholm}; completeness alone does not ensure existence. The categorical information requirements concern the proxies $U,V$, not the number of categories of the baseline covariates $W$. A bridge need not be unique, but the argument below shows that any admissible solution gives the same potential-outcome mean.
+Assumption~\ref{ass:comp}(ii), together with additional regularity and range conditions such as those discussed in \cite{miao2018proxy,mastouri2021proximal}, can ensure existence of a solution to \eqref{eq:fredholm}; completeness alone does not ensure existence. A bridge need not be unique, but the argument below shows that any admissible solution gives the same potential-outcome mean.
 
 \paragraph{Proximal $g$-formula.}
 In addition to Assumption~\ref{ass:str}, assume consistency and \emph{latent conditional exchangeability}, $Y(a)\indep A\mid(Z,W)$, as encoded by the causal DAGs above. Also assume positivity for treatment $a$ given $(Z,W)$ throughout the target population, existence of an integrable bridge $h$, and Assumption~\ref{ass:comp}(i). The conditional-mean differences used below must be square-integrable so that completeness applies. For continuous treatments, retain the support and regularity qualifications discussed earlier. Then
@@ -562,7 +562,7 @@ In addition to Assumption~\ref{ass:str}, assume consistency and \emph{latent con
  \boxed{E[Y(a)]=E[h(U,a,W)]
  =\int h(u,a,w)\,dF_{U,W}(u,w).}
 \end{equation}
-The averaging uses the \emph{marginal} distribution of $(U,W)$ in the target population, not their distribution among those with $A=a$ \cite{miao2018proxy}.
+The averaging uses the \emph{marginal} distribution of $(U,W)$ in the target population, not their distribution among those with $A=a$ \cite{miao2018proxy}. In this case the potential outcome mean can be identified nonparametrically by \eqref{eq:prox-g}.
 
 \begin{proof}
 First show what the bridge equation tells us about the latent confounder. Fix $a,w$.
@@ -603,17 +603,150 @@ We can now average over that target distribution:
 The second equality uses latent conditional exchangeability; the third uses consistency. The fourth is the equality established by completeness, and the last is iterated expectation.
 \end{proof}
 
-\paragraph{Computation.}
-Most works focus on identification conditions in proxy models. 
-how to find it: KPV and PMMR proposed by \cite{mastouri2021proximal}. These two methods are inspired kernel regression in IV setups.
+\paragraph{Proximal $g-$Computation.}
+To estimate the bridge function, \cite{mastouri2021proximal}
+propose Kernel Proxy Variable (KPV) and Proxy Maximum Moment
+Restriction (PMMR), adapting ideas from kernel-based estimation
+in instrumental-variable problems. For kernel-based estimation,
+the bridge $h(u,a,w)$ is assumed to belong to the product RKHS
+\[
+    \mathcal H
+    =\mathcal H_U\otimes\mathcal H_A\otimes\mathcal H_W.
+\]
+Let $\phi_F$ denote the feature map associated with
+$\mathcal H_F$, for $F\in\{U,A,V,W\}$.
 
-\paragraph{Difficulties.}
-The PCI framework looks promising; yet in implementation, it suffers from some fundamental issues:
 \begin{enumerate}
-    \item 
+    \item \textbf{KPV} estimates the bridge by minimizing the population risk
+\[
+    \min_{h\in\mathcal H}\widetilde R(h),
+    \qquad
+    \widetilde R(h)
+    =E\!\left[\{Y-G_h(A,V,W)\}^2\right],
+\]
+where
+\begin{align*}
+    G_h(a,v,w)
+    &:=E[h(U,a,w)\mid A=a,V=v,W=w]\\
+    &=\int h(u,a,w)p(u\mid a,v,w)\,du\\
+    &=\left\langle
+        h,\,
+        \mu_{U\mid a,v,w}
+        \otimes\phi_A(a)\otimes\phi_W(w)
+      \right\rangle_{\mathcal H}.
+\end{align*}
+Here
+\[
+    \mu_{U\mid a,v,w}
+    :=E[\phi_U(U)\mid A=a,V=v,W=w]
+\]
+is the conditional mean embedding of $U$ given $(A,V,W)$.
+It represents the conditional distribution through kernel
+features, allowing us to evaluate $G_h$ without explicitly
+estimating a conditional density. The bridge equation asks
+for $G_h(A,V,W)=E[Y\mid A,V,W]$, which minimizes the squared
+prediction risk when such a bridge belongs to $\mathcal H$.
+
+KPV implements this objective in two stages, both using
+kernel ridge regression with closed-form solutions.
+
+\emph{Stage 1: estimate the conditional mean embedding.}
+Using a sample $\{(U_i,A_i,V_i,W_i)\}_{i=1}^{m_1}$, define
+\[
+    \phi_{AVW}(a,v,w)
+    =\phi_A(a)\otimes\phi_V(v)\otimes\phi_W(w)
+\]
+and solve
+\[
+    \widehat C
+    =\arg\min_C
+    \left\{
+        \frac{1}{m_1}\sum_{i=1}^{m_1}
+        \left\|
+            \phi_U(U_i)
+            -C\phi_{AVW}(A_i,V_i,W_i)
+        \right\|_{\mathcal H_U}^{2}
+        +\lambda_1\|C\|_{\mathrm{HS}}^{2}
+    \right\}.
+\]
+The optimization is over Hilbert--Schmidt operators
+$C:\mathcal H_{AVW}\to\mathcal H_U$, and
+$\|\cdot\|_{\mathrm{HS}}$ denotes the Hilbert--Schmidt norm.
+The fitted embedding is
+\[
+    \widehat\mu_{U\mid a,v,w}
+    =\widehat C\phi_{AVW}(a,v,w).
+\]
+
+\emph{Stage 2: estimate the bridge.}
+Replace the unknown embedding in $G_h$ by its first-stage
+estimate:
+\[
+    \widehat G_h(a,v,w)
+    =
+    \left\langle
+        h,\,
+        \widehat\mu_{U\mid a,v,w}
+        \otimes\phi_A(a)\otimes\phi_W(w)
+    \right\rangle_{\mathcal H}.
+\]
+Then, using a second sample
+$\{(\widetilde Y_j,\widetilde A_j,
+\widetilde V_j,\widetilde W_j)\}_{j=1}^{m_2}$, solve
+\[
+    \widehat h
+    =\arg\min_{h\in\mathcal H}
+    \left\{
+        \frac{1}{m_2}\sum_{j=1}^{m_2}
+        \left[
+            \widetilde Y_j
+            -\widehat G_h(
+                \widetilde A_j,\widetilde V_j,\widetilde W_j)
+        \right]^2
+        +\lambda_2\|h\|_{\mathcal H}^{2}
+    \right\}.
+\]
+Thus, the second stage minimizes a regularized empirical
+version of $\widetilde R(h)$ using the estimated embedding.
+The two samples may be separate datasets from the corresponding
+marginal distributions or two subsets of a fully observed dataset.
+
+Theorem 1 of \cite{mastouri2021proximal} gives the
+second-stage solution in operator form. Proposition 2 in the
+March 2023 revision gives a finite kernel-matrix representation obtained by the representer theorem
+and applies the Woodbury identity to replace a naive
+$(m_1m_2)\times(m_1m_2)$ inversion, costing
+$O((m_1m_2)^3)$, with an $m_2\times m_2$ solve costing
+$O(m_2^3)$. This reduction concerns the second-stage solve;
+the first-stage fit and construction of the kernel matrices
+have additional computational costs.
+
+\item \textbf{PMMR}, on the other hand, only consists of one stage. It takes the idea of a mathematical fact \cite[Lemma 1]{mastouri2021proximal}: a measurable function $h$ is a solution to \eqref{eq:fredholm} if and only if it satisfies the conditional moment restriction (CMR) $E[Y-h(U, A, W)|A,V,W]=0$, which further implies 
+\[
+E[(Y-h(U, A, W))g(A,V,W)]=0
+\]
+for any measurable function $g$ on .... In this form, they generalize the Maximum moment restriction (MMR) method to PMMR to solve for $h$. The PMMR objective is thus given by
+\begin{equation}
+    \label{eq:pmmr_pop}
+\end{equation}
+Under Zhang et al 2020 theorem 1 (cite this paper), $R_k(h)=0$ if and only if $E[Y-h(U, A, W)|A,V,W]=0$, i.e., the population objective \eqref{eq:pmmr_pop} solves the inverse problem \eqref{eq:fredholm}. Lemma 2 further simplifies this objective to a kernel form, provided that some moment condition holds. Finally $h$ can be solved by minimizing an empirical version of \eqref{eq:pmmr_pop}, giving an objective 
+\begin{equation}
+    ...
+\end{equation}
+Again, the representer theorem is used to simplify the infinite-dimensional problem to a finite computable one. Both the KPV and PMMR solve \eqref{eq:fredholm} using kernel ridge regression: KPV uses two stages to sequentially optimize it by first solving for a conditional embedding mean; while PMMR resorts to an equivalent conditional moment condition and solve it by MMR in one step. 
+
+\item \textbf{Proximal two-stage least squares (P2SLS)} assumes a parametric form of $h$...
 \end{enumerate}
 
-\begin{remark}[More on Assumption \ref{ass:comp}.]
+
+
+\paragraph{Difficulties.}
+The PCI framework looks promising and improves IV method by finding relatively accessible variables; yet in implementation, it suffers from some fundamental issues:
+\begin{enumerate}
+    \item Although, \cite{mastouri2021proximal} proved that both KPV and PMMR can consistently estimate the potential-outcome mean
+\end{enumerate}
+
+\begin{remark}[More on completeness in Assumption \ref{ass:comp}.] 
     
 \end{remark}
 
