@@ -835,15 +835,19 @@ mean embedding.
 
 
 \paragraph{Research Gaps.}
-The PCI framework looks promising and improves IV method by finding relatively accessible variables; yet in implementation, it suffers from some fundamental issues:
+The proxy-based methods reviewed above provide an alternative to conventional IV approaches by allowing proxies to be associated with the latent confounder. Their usefulness still depends on identification assumptions and estimation choices. Focusing on P2SLS, KPV, and PMMR, the following issues are particularly relevant to our research:
 \begin{enumerate}
-    \item Although, \cite{mastouri2021proximal} proved that both KPV and PMMR can consistently estimate the potential-outcome mean $E[Y(a)]$, the results rely on correctly specified regularization parameters. Typical data-driven selection such as GCV and LOOCV do not necessarily guarantee such correct choice. 
+    \item \textbf{Regularization and finite-sample stability.}
+    The consistency results for KPV and PMMR require suitable regularization sequences and regularity conditions, including smoothness assumptions \cite{mastouri2021proximal}. Data-driven choices such as LOOCV, which the paper uses in practice, do not automatically establish that these theoretical conditions hold. The relevant concern is how tuning affects finite-sample stability and causal estimation accuracy, rather than whether a regularization parameter is ``correctly specified.''
 
-    \item The derivation of the proximal $g-$formula \eqref{eq:g-formula} and the existence of $h$ relies one the completeness of proxies in Assumption \ref{ass:comp}, which is not testable.
+    \item \textbf{Proxy assumptions and bridge existence.}
+    Identification through the proximal $g$-formula \eqref{eq:prox-g} relies on the proxy restrictions and latent completeness condition in Assumption~\ref{ass:comp}(i). These generally cannot be verified from observed data alone. Bridge existence additionally requires suitable conditions; completeness alone is insufficient \cite{miao2018proxy,tchetgen2020introduction}. Thus, having two observed proxies does not by itself establish identification, and weak proxy information can make estimation unstable even when identification holds.
 
-    \item The framework mainly focuses on the estimation of the ATE alone but not other structural parameters; inference relies on bootstrapping, which is typically...??(any obvious drawbacks?)
+    \item \textbf{Scope of estimation and uncertainty quantification.}
+    The methods reviewed here primarily estimate potential-outcome means and their contrasts, rather than the structural parameters of a latent-confounder model. Bootstrap inference for parametric proximal $g$-computation requires refitting the procedure and can be computationally costly, especially with additional tuning \cite{tchetgen2020introduction}. However, PCI is not restricted to bootstrap inference: semiparametric and influence-function-based methods also exist \cite{cui2024semiparametric}. For kernel estimators, point-estimation consistency alone does not guarantee valid confidence intervals.
 
-    \item These methods mainly hedges against the imperfect proxies; but never tried to recover the underlying unmeasured confounder(s), which might contain rich information.
+    \item \textbf{Recovering latent structure.}
+    P2SLS, KPV, and PMMR estimate a bridge without explicitly reconstructing the latent confounder $Z$. This is useful for causal effect estimation, but does not automatically identify $Z$, its distribution, or the structural mechanisms involving it \cite{miao2018proxy}. Learning an interpretable latent representation is a separate research objective requiring additional modeling and identification assumptions; it should not be described as something that all prior proxy-based methods have ignored.
 \end{enumerate}
 
 \begin{remark}[More on completeness in Assumption \ref{ass:comp}.] 
