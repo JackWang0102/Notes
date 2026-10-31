@@ -633,26 +633,26 @@ $\mathcal H_F$, for $F\in\{U,A,V,W\}$.
     \widehat\mu_{\mathrm{prox}}(a)
     =\frac1n\sum_{i=1}^n h(U_i,a,W_i;\widehat\eta).
     \end{equation}
-    Under the proximal identification assumptions, correct model specification, and suitable regularity conditions, the latter consistently estimates $E[Y(a)]$.
+    Under the proximal identification assumptions, \emph{correct model specification}, and suitable regularity conditions, the latter consistently estimates $E[Y(a)]$.
 
     For P2SLS, use an additive linear bridge (with scalar $U$ for simplicity):
     \[
     h(u,a,w;\eta)=\eta_0+\beta_a a+\eta_Uu+\eta_W^\top w.
     \]
-    The bridge is a function, so it contains no random error term. Substitution into \eqref{eq:fredholm} gives
+    The bridge is a function, so it contains no random error term. To obtain an estimate of $\eta$ from data, we substitute this into \eqref{eq:fredholm} gives
     \[
     E[Y\mid A,V,W]
     =\eta_0+\beta_a A+\eta_U E[U\mid A,V,W]+\eta_W^\top W.
     \]
     Only the conditional mean of $U$ is needed in this linear case. This yields two least-squares regressions:
     \begin{enumerate}
-        \item \emph{Stage 1:} regress $U$ on an intercept, $A,V,W$, and obtain fitted values
+        \item \emph{Stage 1:} regress $U$ on an intercept, $A,V,W$, and obtain fitted values (estimate of $E[U\mid A,V,W]$)
         \[
         \widehat U_i
         =\widehat\theta_0+\widehat\theta_A A_i
          +\widehat\theta_V^\top V_i+\widehat\theta_W^\top W_i.
         \]
-        \item \emph{Stage 2:} regress $Y$ on an intercept, $A,\widehat U,W$:
+        \item \emph{Stage 2:} regress $Y$ on an intercept, $A,\widehat U,W$ (estimate of $E[Y\mid A,V,W]$):
         \[
         Y_i=\eta_0+\beta_a A_i+\eta_U\widehat U_i
             +\eta_W^\top W_i+\epsilon_{Y,i}.
@@ -660,11 +660,18 @@ $\mathcal H_F$, for $F\in\{U,A,V,W\}$.
     \end{enumerate}
     For vector-valued $U$, fit the first-stage regression separately for each component. The proximal $g$-formula then gives
     \[
-    E[Y(a)]=\eta_0+\beta_a a+\eta_U E[U]+\eta_W^\top E[W].
+    E[Y(a)]=E[h(U,a,W)]=\eta_0+\beta_a a+\eta_U E[U]+\eta_W^\top E[W].
     \]
-    Thus, under this additive bridge, $\beta_a$ is the effect of a one-unit increase in treatment; for binary treatment it is the ATE. Its estimate is the coefficient of $A$ in Stage 2, under the identification, model, and rank conditions. Averaging the fitted bridge uses the original $U_i$, not $\widehat U_i$.
+    That being said, with $\bar U = \sum_i U_i/n$ and $\bar W = \sum_i W_i/n$,
+    \[
+    \widehat{E[Y(a)]}
+    =\frac1n\sum_{i=1}^n h(U_i,a,W_i;\widehat\eta)
+    =\widehat\eta_0+\widehat\beta_a a
+    +\widehat\eta_U\bar U+\widehat\eta_W^\top\bar W.
+    \]
+    Thus, under this additive bridge, $\beta_a$ is the effect of a one-unit increase in treatment; for binary treatment it is the ATE. Its estimate is the coefficient of $A$ in Stage 2, under the identification, model, and rank conditions. Averaging the fitted bridge uses the original $U_i$, not $\widehat U_i$. Although this method can be extended beyond linear, misspecification (both conditional mean for $U$ and $h$) could still be a potential problem as long as the consistency of ATE depends on $h$; thus more flexible methods are proposed, e.g., semiparametric models \cite{cui2024semiparametric} and kernelized ridge  regression \cite{mastouri2021proximal}.
 
-    Although $\widehat U$ acts as a \emph{proximal control variable}, simply adjusting for the observed $U$ generally does not remove latent confounding. Standard 2SLS software can implement P2SLS by treating $U$ as the endogenous regressor, $V$ as its instrument, and $(1,A,W)$ as included regressors and instruments. Here $V$ plays an instrument-like computational role; it need not be independent of the latent $Z$. For inference, use a suitable 2SLS variance estimator or bootstrap both stages; ordinary second-stage OLS standard errors do not account for the first-stage estimation \cite{tchetgen2020introduction}.
+    % Although $\widehat U$ acts as a \emph{proximal control variable}, simply adjusting for the observed $U$ generally does not remove latent confounding. Standard 2SLS software can implement P2SLS by treating $U$ as the endogenous regressor, $V$ as its instrument, and $(1,A,W)$ as included regressors and instruments. Here $V$ plays an instrument-like computational role; it need not be independent of the latent $Z$. For inference, use a suitable 2SLS variance estimator or bootstrap both stages; ordinary second-stage OLS standard errors do not account for the first-stage estimation \cite{tchetgen2020introduction}.
 
     \item \textbf{KPV} estimates the bridge by minimizing the population risk
 \[
@@ -823,24 +830,24 @@ The representer theorem reduces this to a finite-dimensional
 kernel problem. Unlike KPV, PMMR directly optimizes the
 kernelized moment loss without first estimating a conditional
 mean embedding.
-
-
 \end{enumerate}
 
 
 
-\paragraph{Difficulties.}
+\paragraph{Research Gaps.}
 The PCI framework looks promising and improves IV method by finding relatively accessible variables; yet in implementation, it suffers from some fundamental issues:
 \begin{enumerate}
     \item Although, \cite{mastouri2021proximal} proved that both KPV and PMMR can consistently estimate the potential-outcome mean $E[Y(a)]$, the results rely on correctly specified regularization parameters. Typical data-driven selection such as GCV and LOOCV do not necessarily guarantee such correct choice. 
 
     \item The derivation of the proximal $g-$formula \eqref{eq:g-formula} and the existence of $h$ relies one the completeness of proxies in Assumption \ref{ass:comp}, which is not testable.
 
-    \item The framework mainly focuses on the estimation of the ATE alone but not other structural parameters; inference relies on bootstrapping.
+    \item The framework mainly focuses on the estimation of the ATE alone but not other structural parameters; inference relies on bootstrapping, which is typically...??(any obvious drawbacks?)
+
+    \item These methods mainly hedges against the imperfect proxies; but never tried to recover the underlying unmeasured confounder(s), which might contain rich information.
 \end{enumerate}
 
 \begin{remark}[More on completeness in Assumption \ref{ass:comp}.] 
-    
+    ...
 \end{remark}
 
 \section{Causal Inference with Models}
