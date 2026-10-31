@@ -617,24 +617,55 @@ Let $\phi_F$ denote the feature map associated with
 $\mathcal H_F$, for $F\in\{U,A,V,W\}$.
 
 \begin{enumerate}
-    \item \textbf{Proximal two-stage least squares (P2SLS)} assumes parametric forms of both $h$ and $p(u|a, v,w)$ with parameters $\eta$ and $\theta$, respectively. Let $\widehat \theta$ be the MLE of  $\theta$, then we can approximate $p(u|a, v,w)$ by $p(u|a, v,w; \widehat \theta)$; thus $\widehat\mu(A;\eta):=\sum_{u}h(u,A,W;\eta)p(u|A, V,W; \widehat \theta)$ estimates $E[Y|A,V,W]$. To solve for $\eta$, one can solve the least squares problem
+    \item \textbf{Proximal two-stage least squares (P2SLS)} is a linear special case of parametric proximal $g$-computation \cite[Section~5]{tchetgen2020introduction}. In the general parametric approach, specify a bridge $h(u,a,w;\eta)$ and a model $p(u\mid a,v,w;\theta)$. After estimating $\theta$, for example by maximum likelihood, define the fitted conditional outcome mean
     \[
-    ...
+    \widehat\mu_i(\eta)
+    :=\int h(u,A_i,W_i;\eta)
+        p(u\mid A_i,V_i,W_i;\widehat\theta)\,du,
     \]
-    Finally, provided that all models are correctly specified, one can show that $\widehat E[Y(a)]:= \frac{1}{n}h(...;\widehat \eta)$ consistently estimate $E[Y(a)]$. When $h$ is linear, say
+    using a sum when $U$ is discrete. For a continuous outcome, estimate $\eta$ by
+    \begin{equation}
+    \label{eq:parametric-prox-ls}
+    \widehat\eta
+    =\arg\min_\eta\frac1n\sum_{i=1}^n
+       \{Y_i-\widehat\mu_i(\eta)\}^2,
+    \qquad
+    \widehat\mu_{\mathrm{prox}}(a)
+    =\frac1n\sum_{i=1}^n h(U_i,a,W_i;\widehat\eta).
+    \end{equation}
+    Under the proximal identification assumptions, correct model specification, and suitable regularity conditions, the latter consistently estimates $E[Y(a)]$.
+
+    For P2SLS, use an additive linear bridge (with scalar $U$ for simplicity):
     \[
-    h(A, U, W; \eta_U, \eta_W,\beta_a) = \beta_a A + \eta_U U+ \eta_WW + \epsilon.
+    h(u,a,w;\eta)=\eta_0+\beta_a a+\eta_Uu+\eta_W^\top w.
     \]
-    Then $E[Y(a)]$, by \eqref{eq:g-formula}, is
+    The bridge is a function, so it contains no random error term. Substitution into \eqref{eq:fredholm} gives
     \[
-    E[h(a, U, W; \eta_U, \eta_W,\beta_a) ] = \beta_a a + \eta_U E[U]+ \eta_WE[W]. 
+    E[Y\mid A,V,W]
+    =\eta_0+\beta_a A+\eta_U E[U\mid A,V,W]+\eta_W^\top W.
     \]
-    As a result, $\widehat{\beta}_a$ is the unit ATE, which can be estimated by the regression function
+    Only the conditional mean of $U$ is needed in this linear case. This yields two least-squares regressions:
+    \begin{enumerate}
+        \item \emph{Stage 1:} regress $U$ on an intercept, $A,V,W$, and obtain fitted values
+        \[
+        \widehat U_i
+        =\widehat\theta_0+\widehat\theta_A A_i
+         +\widehat\theta_V^\top V_i+\widehat\theta_W^\top W_i.
+        \]
+        \item \emph{Stage 2:} regress $Y$ on an intercept, $A,\widehat U,W$:
+        \[
+        Y_i=\eta_0+\beta_a A_i+\eta_U\widehat U_i
+            +\eta_W^\top W_i+\epsilon_{Y,i}.
+        \]
+    \end{enumerate}
+    For vector-valued $U$, fit the first-stage regression separately for each component. The proximal $g$-formula then gives
     \[
-    Y=\beta_a A + \eta_U \widehat{U}  + \eta_w W + \epsilon_Y.
+    E[Y(a)]=\eta_0+\beta_a a+\eta_U E[U]+\eta_W^\top E[W].
     \]
-    where $\widehat{U}$ is obtained by regressing $U$ over $A,V,W$. This leads to a two-stage estimation procedure.
-    
+    Thus, under this additive bridge, $\beta_a$ is the effect of a one-unit increase in treatment; for binary treatment it is the ATE. Its estimate is the coefficient of $A$ in Stage 2, under the identification, model, and rank conditions. Averaging the fitted bridge uses the original $U_i$, not $\widehat U_i$.
+
+    Although $\widehat U$ acts as a \emph{proximal control variable}, simply adjusting for the observed $U$ generally does not remove latent confounding. Standard 2SLS software can implement P2SLS by treating $U$ as the endogenous regressor, $V$ as its instrument, and $(1,A,W)$ as included regressors and instruments. Here $V$ plays an instrument-like computational role; it need not be independent of the latent $Z$. For inference, use a suitable 2SLS variance estimator or bootstrap both stages; ordinary second-stage OLS standard errors do not account for the first-stage estimation \cite{tchetgen2020introduction}.
+
     \item \textbf{KPV} estimates the bridge by minimizing the population risk
 \[
     \min_{h\in\mathcal H}\widetilde R(h),
