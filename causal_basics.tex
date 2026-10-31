@@ -560,7 +560,7 @@ In addition to Assumption~\ref{ass:str}, assume consistency and \emph{latent con
 \begin{equation}
 \label{eq:prox-g}
  \boxed{E[Y(a)]=E[h(U,a,W)]
- =\int h(u,a,w)\,dF_{U,W}(u,w).}
+ =\int h(u,a,w)\,dF_{U,W}(u,w)}
 \end{equation}
 The averaging uses the \emph{marginal} distribution of $(U,W)$ in the target population, not their distribution among those with $A=a$ \cite{miao2018proxy}. In this case the potential outcome mean can be identified nonparametrically by \eqref{eq:prox-g}.
 
@@ -617,6 +617,24 @@ Let $\phi_F$ denote the feature map associated with
 $\mathcal H_F$, for $F\in\{U,A,V,W\}$.
 
 \begin{enumerate}
+    \item \textbf{Proximal two-stage least squares (P2SLS)} assumes parametric forms of both $h$ and $p(u|a, v,w)$ with parameters $\eta$ and $\theta$, respectively. Let $\widehat \theta$ be the MLE of  $\theta$, then we can approximate $p(u|a, v,w)$ by $p(u|a, v,w; \widehat \theta)$; thus $\widehat\mu(A;\eta):=\sum_{u}h(u,A,W;\eta)p(u|A, V,W; \widehat \theta)$ estimates $E[Y|A,V,W]$. To solve for $\eta$, one can solve the least squares problem
+    \[
+    ...
+    \]
+    Finally, provided that all models are correctly specified, one can show that $\widehat E[Y(a)]:= \frac{1}{n}h(...;\widehat \eta)$ consistently estimate $E[Y(a)]$. When $h$ is linear, say
+    \[
+    h(A, U, W; \eta_U, \eta_W,\beta_a) = \beta_a A + \eta_U U+ \eta_WW + \epsilon.
+    \]
+    Then $E[Y(a)]$, by \eqref{eq:g-formula}, is
+    \[
+    E[h(a, U, W; \eta_U, \eta_W,\beta_a) ] = \beta_a a + \eta_U E[U]+ \eta_WE[W]. 
+    \]
+    As a result, $\widehat{\beta}_a$ is the unit ATE, which can be estimated by the regression function
+    \[
+    Y=\beta_a A + \eta_U \widehat{U}  + \eta_w W + \epsilon_Y.
+    \]
+    where $\widehat{U}$ is obtained by regressing $U$ over $A,V,W$. This leads to a two-stage estimation procedure.
+    
     \item \textbf{KPV} estimates the bridge by minimizing the population risk
 \[
     \min_{h\in\mathcal H}\widetilde R(h),
@@ -775,7 +793,7 @@ kernel problem. Unlike KPV, PMMR directly optimizes the
 kernelized moment loss without first estimating a conditional
 mean embedding.
 
-\item \textbf{Proximal two-stage least squares (P2SLS)} assumes a parametric form of $h$...
+
 \end{enumerate}
 
 
@@ -783,7 +801,11 @@ mean embedding.
 \paragraph{Difficulties.}
 The PCI framework looks promising and improves IV method by finding relatively accessible variables; yet in implementation, it suffers from some fundamental issues:
 \begin{enumerate}
-    \item Although, \cite{mastouri2021proximal} proved that both KPV and PMMR can consistently estimate the potential-outcome mean
+    \item Although, \cite{mastouri2021proximal} proved that both KPV and PMMR can consistently estimate the potential-outcome mean $E[Y(a)]$, the results rely on correctly specified regularization parameters. Typical data-driven selection such as GCV and LOOCV do not necessarily guarantee such correct choice. 
+
+    \item The derivation of the proximal $g-$formula \eqref{eq:g-formula} and the existence of $h$ relies one the completeness of proxies in Assumption \ref{ass:comp}, which is not testable.
+
+    \item The framework mainly focuses on the estimation of the ATE alone but not other structural parameters; inference relies on bootstrapping.
 \end{enumerate}
 
 \begin{remark}[More on completeness in Assumption \ref{ass:comp}.] 
